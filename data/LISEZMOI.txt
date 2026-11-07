@@ -1,0 +1,1 @@
+Déposez ici le contenu de la sauvegarde (collection.json et le dossier images/) pour publier la collection.
