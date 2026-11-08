@@ -534,5 +534,21 @@ body.solving .top, body.solving .head, body.solving .scramble, body.solving .sid
 .cut-swatches .sw { width: 26px; height: 26px; border-radius: 6px; border: 2px solid rgb(0 0 0 / .3); cursor: pointer; }
 .cut-status { margin: 0; }
 @media (max-width: 860px) { .cut-body { grid-template-columns: 1fr; } .cut-panel { max-height: none; } }
-.doc-icon svg { width: 130px; height: 130px; display: block; }
+.doc-icon svg { height: 130px; width: auto; max-width: 260px; display: block; margin-left: auto; }
+.doc-head { grid-template-columns: 1fr auto; }
 .sheet-card .mini svg { width: 54px; height: 54px; }
+#jobbar { position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 300; background: var(--ink); color: var(--plastic); padding: 12px 16px; border-radius: 12px; font-weight: 600; max-width: 640px; margin: 0 auto; }
+#jobbar .bar { height: 5px; background: rgb(255 255 255 / .2); border-radius: 3px; margin-top: 8px; overflow: hidden; }
+#jobbar .bar i { display: block; height: 100%; width: 0; background: var(--yellow); transition: width .3s; }
+
+/* ---------- fond des vignettes : uni (défaut), couleur choisie, ou teinte de l'objet ---------- */
+:root { --tile-bg: var(--paper); }
+:root[data-tilebg="perso"] { --tile-bg: var(--tile-custom, var(--paper)); }
+:root:not([data-tilebg="teinte"]) .tile { background: var(--tile-bg); }
+:root[data-tilebg="perso"] .tile { color: var(--tile-ink, var(--ink)); }
+:root[data-tilebg="perso"] .tile .tsub { color: inherit; opacity: .72; }
+:root:not([data-tilebg="teinte"]) .detail .stage { background: radial-gradient(circle at 50% 42%, var(--paper) 0%, var(--tile-bg) 45%, color-mix(in oklab, var(--tile-bg) 82%, #000) 100%); }
+:root[data-tilebg="uni"] .detail .stage { background: radial-gradient(circle at 50% 42%, #fff 0%, var(--paper) 40%, var(--core) 100%); }
+:root[data-theme="noir"][data-tilebg="uni"] .detail .stage { background: radial-gradient(circle at 50% 42%, #3a3a3a 0%, #262626 60%, #1a1a1a 100%); }
+:root:not([data-tilebg="teinte"]) .ledger tr:hover td { background: var(--core); }
+:root:not([data-tilebg="teinte"]) .wk-preview.on-tone { background: var(--tile-bg); }

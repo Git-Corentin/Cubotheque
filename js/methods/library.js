@@ -132,6 +132,8 @@ export function buildLibrary() {
     intro: 'On réduit le 4x4 à un 3x3 : centres de 2x2, puis arêtes appariées, puis résolution comme un 3x3. Notation : Rw = deux couches de droite, 2R = la deuxième couche seule.',
     blocks: [
       text('1. Les centres', 'Faites deux centres opposés (blanc puis jaune), puis les quatre autres en respectant l\'ordre des couleurs (vert, rouge, bleu, orange dans le sens des aiguilles d\'une montre, jaune en haut). Les mouvements de tranche (Rw, 2R) déplacent des paires sans casser les centres finis.'),
+      text('Les deux derniers centres : échanger deux pièces', 'Quand il ne reste que les centres du dessus et de devant, une pièce du dessus est souvent devant et inversement. Cet algorithme les échange sans rien toucher d\'autre. Placez les deux pièces aux positions marquées sur le schéma (en tournant U et F au besoin).'),
+      cube('Échange entre les deux derniers centres', "2R U 3R U' 2R' U 3R' U'", { n: 4, views: ['iso', 'net'], note: 'Seules deux pièces de centre changent de place.' }),
       text('2. Les arêtes', 'Appariez les 12 paires d\'arêtes (méthode 3-2-3 ou 6-6). Pour les deux dernières paires, placez-les devant et utilisez cet algorithme, qui ne touche pas aux centres.'),
       cube('Apparier les deux dernières arêtes', "Uw' R U R' F R' F' R Uw", { n: 4, views: ['iso'] }),
       text('3. Comme un 3x3', 'Résolvez avec votre méthode 3x3 en ne tournant que les faces extérieures. Deux situations impossibles sur un 3x3 peuvent apparaître : les parités.'),
@@ -147,6 +149,10 @@ export function buildLibrary() {
     intro: 'Même principe que le 4x4 : centres de 3x3, puis arêtes de 3 pièces, puis comme un 3x3. Les 6x6 et 7x7 se résolvent de la même façon, avec des centres et des arêtes plus grands.',
     blocks: [
       text('1. Les centres', 'Formez chaque centre de 3x3 : d\'abord des barres de 3, puis on les assemble. Même ordre de couleurs qu\'au 4x4.'),
+      text('Les derniers centres : échanger deux pièces (5x5, 6x6, 7x7…)', 'Sur les grands cubes, les centres sont faits de plusieurs familles de pièces (coins de centre, « obliques », croix…), et une pièce ne peut aller qu\'à une place de sa famille. Quand il ne reste que le dessus et l\'avant, il faut souvent échanger une pièce du dessus avec une pièce de devant. Forme générale : **aR U bR U\' aR\' U bR\' U\'**, où a et b sont deux numéros de couche différents (2R = deuxième couche à partir de la droite). Le couple (a, b) choisit la famille de pièces échangées ; en inversant tous les U et U\', on échange une autre position. Rien d\'autre ne bouge. Les schémas montrent les pièces concernées.'),
+      cube('6x6 : couches 2 et 3', "2R U 3R U' 2R' U 3R' U'", { n: 6, views: ['iso', 'net'] }),
+      cube('6x6 : couches 2 et 4', "2R U 4R U' 2R' U 4R' U'", { n: 6, views: ['iso', 'net'] }),
+      cube('7x7 : couches 3 et 5', "3R U 5R U' 3R' U 5R' U'", { n: 7, views: ['iso', 'net'] }),
       text('2. Les arêtes', 'Appariez les deux « ailes » de chaque arête avec son milieu. Pour les deux dernières, placez-les devant et derrière à droite.'),
       cube('Apparier les deux dernières arêtes', "Dw R F' U R' F Dw'", { n: 5, views: ['iso'] }),
       cube('Parité d\'arête : deux ailes retournées', "2R2 B2 U2 2L U2 2R' U2 2R U2 F2 2R F2 2L' B2 2R2", { n: 5, mask: 'oll', views: ['top', 'iso'], note: 'Quand il ne reste qu\'une arête dont les deux ailes sont inversées. Ne touche à rien d\'autre.' }),
@@ -249,7 +255,7 @@ export function buildLibrary() {
   }));
 
   L.push(sheet({
-    id: 'lib-dino-redi', icon: 'skewb', title: 'Dino Cube et Redi Cube', puzzle: 'Dino, Redi', events: ['redi_cube'], keywords: /dino|redi|rex/i,
+    id: 'lib-dino-redi', icon: 'dino+redi', title: 'Dino Cube et Redi Cube', puzzle: 'Dino, Redi', events: ['redi_cube'], keywords: /dino|redi|rex/i,
     intro: 'Deux cubes qui tournent autour des coins et ne gardent que des arêtes (Dino) ou des arêtes et des coins (Redi). Un seul algorithme de cycle suffit, combiné à des mouvements de préparation.',
     blocks: [
       text('Dino Cube', 'Il n\'y a que 12 arêtes et pas de centres : les couleurs se déduisent des arêtes déjà placées. Faites une face entière (4 arêtes), puis les 4 arêtes du milieu, puis la dernière face avec le cycle de trois arêtes, en amenant les trois arêtes concernées au bon endroit par un mouvement de préparation que l\'on défait ensuite. Notation : chaque mouvement porte le nom du coin qui tourne (UFR, DRF…).'),
@@ -261,7 +267,7 @@ export function buildLibrary() {
   }));
 
   L.push(sheet({
-    id: 'lib-minx-famille', icon: 'megaminx', title: 'Kilominx, Gigaminx et autres minx', puzzle: 'Dodécaèdres', events: ['kilominx'], keywords: /kilominx|gigaminx|teraminx|minx/i,
+    id: 'lib-minx-famille', icon: 'kilominx', title: 'Kilominx, Gigaminx et autres minx', puzzle: 'Dodécaèdres', events: ['kilominx'], keywords: /kilominx|gigaminx|teraminx|minx/i,
     intro: 'Le Kilominx est un Megaminx sans arêtes ni centres : il ne reste que les 20 coins. Les grands minx se ramènent au Megaminx par réduction.',
     blocks: [
       text('Kilominx et Master Kilominx', 'Résolvez une première face de coins, puis remontez couronne par couronne comme sur le Megaminx. Pour la dernière face, les algorithmes de coins du Megaminx fonctionnent tels quels. Le Master Kilominx se réduit à un Kilominx : groupez d\'abord centres et arêtes de chaque face.'),
@@ -274,7 +280,7 @@ export function buildLibrary() {
   }));
 
   L.push(sheet({
-    id: 'lib-morphix', icon: 'pyraminx', title: 'Famille Morphix et formes trompeuses', puzzle: 'Pyramorphix, Mastermorphix, Megamorphix, Gigamorphix', events: [], keywords: /morphix|dodecaedro|twisty skewb|illusion/i,
+    id: 'lib-morphix', icon: 'morphix', title: 'Famille Morphix et formes trompeuses', puzzle: 'Pyramorphix, Mastermorphix, Megamorphix, Gigamorphix', events: [], keywords: /morphix|dodecaedro|twisty skewb|illusion/i,
     intro: 'Ces puzzles ont la forme d\'une pyramide ou d\'un dodécaèdre, mais cachent un mécanisme connu. On applique la méthode du cube correspondant, en repérant ce que devient chaque pièce.',
     blocks: [
       text('Correspondances', '**Pyramorphix** = 2x2. **Mastermorphix** = 3x3 à centres orientés. **Megamorphix** = 4x4. **Gigamorphix** = 5x5. **Dodécaèdre 2x2 (LanLan)** = 2x2. **Twisty Skewb** et **Skewb Ultimate** = Skewb. **V-Cube 7 Illusion** = 7x7 dont les couleurs trompent l\'œil : résolvez-le comme un 7x7 en suivant le motif.'),

@@ -33,7 +33,8 @@ export function localBackend() {
     },
     saveItem: (it) => db.put('items', it),
     deleteItem: (id) => db.del('items', id),
-    async saveImage(blob) { const id = uid(); await db.put('images', { id, blob, type: blob.type }); return id; },
+    async saveImage(blob, name) { const id = name || uid(); await db.put('images', { id, blob, type: blob.type }); return id; },
+    async wipe() { for (const st of ['items', 'images', 'sheets', 'solves']) await db.clear(st); urls.clear(); },
     async deleteImage(id) { if (id) await db.del('images', id); },
     async imageURL(id) {
       if (!id) return null;
@@ -88,9 +89,9 @@ export async function supaBackend(cfg) {
     },
     async saveItem(it) { check(await client.from('items').upsert({ id: it.id, num: it.num, data: it, updated_at: new Date().toISOString() })); },
     async deleteItem(id) { check(await client.from('items').delete().eq('id', id)); },
-    async saveImage(blob) {
+    async saveImage(blob, name) {
       const ext = blob.type === 'image/webp' ? 'webp' : blob.type === 'image/jpeg' ? 'jpg' : 'png';
-      const id = `${uid()}.${ext}`;
+      const id = `${name || uid()}.${ext}`;
       const opts = { contentType: blob.type, cacheControl: '31536000', upsert: true };
       const r1 = await bucket.upload(id, blob, opts); if (r1.error) throw new Error('Envoi de l\'image refusé : ' + r1.error.message);
       const small = await thumbOf(blob);
@@ -120,7 +121,21 @@ export async function supaBackend(cfg) {
       if (error) throw new Error(error.message);
     },
     async setPassword(password) { const { error } = await client.auth.updateUser({ password }); if (error) throw new Error(error.message); },
-    onAuth(fn) { return client.auth.onAuthStateChange((ev) => fn(ev)); },
+    onAuth(fn) { return client.auth.onAuthStateChange((ev, session) => fn(ev, session)); },
+    /** Vide toute la collection en quelques requêtes (au lieu d'une par objet). */
+    async wipe() {
+      for (const t of ['items', 'sheets', 'solves']) check(await client.from(t).delete().neq('id', ''));
+      for (const dir of ['', 's']) {
+        for (;;) {
+          const { data, error } = await bucket.list(dir, { limit: 1000 });
+          if (error || !data?.length) break;
+          const files = data.filter((f) => f.id).map((f) => (dir ? dir + '/' : '') + f.name);
+          if (!files.length) break;
+          await bucket.remove(files);
+          if (data.length < 1000) break;
+        }
+      }
+    },
     clearCache() { local.clearCache(); },
     local,
   };

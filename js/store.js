@@ -28,13 +28,13 @@ export const SOLVE_STATE = [
 ];
 
 // Réglages du site (partagés, enregistrés avec la collection) et préférences de l'appareil.
-const SITE_KEYS = ['title', 'theme', 'effect', 'defaultView', 'scheme', 'about'];
+const SITE_KEYS = ['title', 'theme', 'effect', 'defaultView', 'scheme', 'about', 'tileBg', 'tileColor'];
 const PREF_KEY = 'cubo.prefs';
 
 const listeners = new Set();
 export const state = {
   items: [], sheets: [], solves: [],
-  settings: { title: 'Cubothèque', theme: 'blanc', effect: 'socle', defaultView: 'presentoir', scheme: 'jaune', about: '', inspection: false, holdMs: 300, proxy: '' },
+  settings: { title: 'Cubothèque', theme: 'blanc', effect: 'socle', tileBg: 'uni', tileColor: '#E8E2D4', defaultView: 'presentoir', scheme: 'jaune', about: '', inspection: false, holdMs: 300, proxy: '' },
   backend: null,        // 'local' | 'supabase'
   canEdit: true,        // le visiteur peut-il modifier ?
   readonly: false,      // = !canEdit (compatibilité)
@@ -63,9 +63,16 @@ export async function load() {
   if (cfg && (!B || B.kind !== 'supabase')) {
     try {
       B = await supaBackend(cfg);
-      B.onAuth(async (ev) => {
+      // Supabase renvoie « SIGNED_IN » à chaque retour sur l'onglet : on ne recharge que si le compte a vraiment changé.
+      let lastUid;
+      B.onAuth(async (ev, session) => {
         if (ev === 'PASSWORD_RECOVERY') { location.hash = '#/connexion/nouveau'; return; }
-        if (ev === 'SIGNED_IN' || ev === 'SIGNED_OUT') { await reload(); emit('all'); }
+        const now = session?.user?.id || null;
+        if (lastUid === undefined) { lastUid = now; return; }
+        if (now === lastUid) return;
+        lastUid = now;
+        if (job.running) return;
+        await reload(); emit('all');
       });
     } catch (e) { state.backendError = 'La bibliothèque de la base en ligne n\'a pas pu se charger (' + e.message + ').'; B = null; }
   }
@@ -216,27 +223,64 @@ export async function exportZip({ withSolves = true, onProgress } = {}) {
   return zip.generateAsync({ type: 'blob' });
 }
 
-/** Importe un jeu de données ; getBlob(id) fournit l'image d'origine. */
-export async function importData(data, getBlob, { replace = false, keepIds = false, onProgress } = {}) {
+/* Import en tâche de fond : progression globale, reprise possible, plusieurs envois en parallèle. */
+export const job = { running: false, done: 0, total: 0, skipped: 0, label: '', errors: [] };
+const JOB_KEY = 'cubo.import';
+export const interruptedImport = () => { try { return JSON.parse(localStorage.getItem(JOB_KEY) || 'null'); } catch { return null; } };
+const leaveGuard = (e) => { e.preventDefault(); e.returnValue = ''; };
+
+/** Importe un jeu de données ; getBlob(id) fournit l'image d'origine.
+ *  Les identifiants sont conservés : relancer le même fichier reprend là où l'import s'était arrêté. */
+export async function importData(data, getBlob, { replace = false, label = 'Import', onProgress } = {}) {
   guard();
-  if (replace) await wipeAll();
+  if (job.running) throw new Error('Un import est déjà en cours : attendez qu\'il se termine.');
   const items = data.items || [];
-  let n = 0;
-  for (const raw of items) {
-    const it = structuredClone(raw);
-    n++; onProgress?.(n, items.length, it.name);
-    if (it.imageId) {
-      const blob = await getBlob(it.imageId).catch(() => null);
-      it.imageId = blob ? await B.saveImage(blob) : null;
-    }
-    if (!keepIds && !replace && state.items.some((x) => x.id === it.id)) it.id = uid();
-    await B.saveItem(it);
+  Object.assign(job, { running: true, done: 0, total: items.length, skipped: 0, label, errors: [] });
+  localStorage.setItem(JOB_KEY, JSON.stringify({ label, total: items.length, done: 0, at: Date.now() }));
+  window.addEventListener('beforeunload', leaveGuard);
+  emit('job');
+  try {
+    if (replace) { job.label = 'Effacement de l\'ancienne collection'; emit('job'); await wipe(); job.label = label; }
+    const existing = new Map(state.items.map((i) => [i.id, i]));
+    let next = 0;
+    const work = async () => {
+      while (next < items.length) {
+        const raw = items[next++];
+        const old = existing.get(raw.id);
+        if (old && (old.imageId || !raw.imageId)) { job.done++; job.skipped++; emit('job'); continue; } // déjà importé
+        const it = structuredClone(raw);
+        for (let attempt = 1; ; attempt++) {
+          try {
+            if (raw.imageId) {
+              const blob = await getBlob(raw.imageId);
+              it.imageId = blob ? await B.saveImage(blob, 'img-' + it.id) : null;
+            }
+            await B.saveItem(it);
+            break;
+          } catch (e) {
+            if (attempt >= 3) { job.errors.push(`${it.name} : ${e.message}`); break; }
+            await new Promise((r) => setTimeout(r, 800 * attempt));
+          }
+        }
+        const k = state.items.findIndex((x) => x.id === it.id);
+        if (k >= 0) state.items[k] = it; else state.items.push(it);
+        job.done++;
+        onProgress?.(job.done, job.total, it.name);
+        localStorage.setItem(JOB_KEY, JSON.stringify({ label, total: job.total, done: job.done, at: Date.now() }));
+        emit('job');
+      }
+    };
+    await Promise.all(Array.from({ length: B.kind === 'local' ? 1 : 4 }, work));
+    for (const s of data.sheets || []) await B.saveSheet(s);
+    if (data.solves) for (const s of data.solves) await B.saveSolve(s).catch(() => {});
+    if (data.settings && replace) { const site = {}; for (const k of SITE_KEYS) if (k in data.settings) site[k] = data.settings[k]; await B.saveSite({ ...Object.fromEntries(SITE_KEYS.map((k) => [k, state.settings[k]])), ...site }); }
+    localStorage.removeItem(JOB_KEY);
+  } finally {
+    job.running = false;
+    window.removeEventListener('beforeunload', leaveGuard);
+    B.clearCache?.();
+    await reload(); emit('all'); emit('job');
   }
-  for (const s of data.sheets || []) await B.saveSheet(s);
-  if (data.solves && state.canEdit) for (const s of data.solves) await B.saveSolve(s);
-  if (data.settings && replace) { const site = {}; for (const k of SITE_KEYS) if (k in data.settings) site[k] = data.settings[k]; await B.saveSite({ ...Object.fromEntries(SITE_KEYS.map((k) => [k, state.settings[k]])), ...site }); }
-  B.clearCache?.();
-  await reload(); emit('all');
   return items.length;
 }
 
@@ -248,7 +292,7 @@ export async function importZip(file, opts = {}) {
     const path = json.images?.[id]; const f = path && zip.file(path); if (!f) return null;
     const ext = path.split('.').pop();
     return new Blob([await f.async('arraybuffer')], { type: { webp: 'image/webp', png: 'image/png', jpg: 'image/jpeg' }[ext] || 'image/png' });
-  }, opts);
+  }, { label: `Import de ${file.name}`, ...opts });
 }
 
 /** Envoie dans la base en ligne ce qui avait été saisi dans ce navigateur. */
@@ -258,17 +302,18 @@ export async function localDataSummary() {
 }
 export async function migrateLocal(onProgress) {
   const { data, L } = await localDataSummary();
-  return importData(data, (id) => L.imageBlob(id), { onProgress });
+  return importData(data, (id) => L.imageBlob(id), { onProgress, label: 'Envoi vers la base en ligne' });
 }
 
-export async function wipeAll() {
-  guard();
-  for (const it of state.items) { if (it.imageId) await B.deleteImage(it.imageId).catch(() => {}); await B.deleteItem(it.id); }
-  for (const s of state.sheets) await B.deleteSheet(s.id);
-  for (const s of state.solves) await B.deleteSolve(s.id);
+async function wipe() {
+  if (B.wipe) await B.wipe();
+  else {
+    for (const it of state.items) { if (it.imageId) await B.deleteImage(it.imageId).catch(() => {}); await B.deleteItem(it.id); }
+    for (const s of state.sheets) await B.deleteSheet(s.id);
+  }
   state.items = []; state.sheets = []; state.solves = [];
-  emit('all');
 }
+export async function wipeAll() { guard(); await wipe(); emit('all'); }
 
 /** Année d'arrivée : date complète si connue, sinon l'année seule. */
 export const yearOf = (it) => (it.acquired ? new Date(it.acquired).getFullYear() : +it.year || null);

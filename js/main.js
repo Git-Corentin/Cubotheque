@@ -1,4 +1,4 @@
-import { state, load, on, adoptPublished } from './store.js';
+import { state, load, on, adoptPublished, job } from './store.js';
 import { h, $, $$, toast } from './ui.js';
 
 const views = {
@@ -56,6 +56,12 @@ function applySettings() {
   const s = state.settings;
   document.documentElement.dataset.theme = s.theme;
   document.documentElement.dataset.fx = s.effect;
+  document.documentElement.dataset.tilebg = s.tileBg || 'uni';
+  if (s.tileBg === 'perso' && s.tileColor) {
+    const n = parseInt(s.tileColor.slice(1), 16), l = 0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255);
+    document.documentElement.style.setProperty('--tile-custom', s.tileColor);
+    document.documentElement.style.setProperty('--tile-ink', l < 140 ? '#fff' : '#000');
+  }
   $('#siteTitle').textContent = s.title || 'Cubothèque';
   document.title = s.title || 'Cubothèque';
   // Réglages : visibles seulement pour qui peut modifier
@@ -86,7 +92,23 @@ function banner() {
   }
 }
 
+// barre de progression des imports, visible sur toutes les pages
+function jobBar() {
+  let bar = $('#jobbar');
+  if (!job.running) {
+    if (bar) {
+      const msg = job.errors.length ? `Import terminé avec ${job.errors.length} erreur(s) : ${job.errors.slice(0, 3).join(' ; ')}` : `Import terminé : ${job.total} objets${job.skipped ? ` (dont ${job.skipped} déjà présents)` : ''}.`;
+      bar.remove(); toast(msg, job.errors.length ? 'err' : '');
+    }
+    return;
+  }
+  if (!bar) { bar = h('div', { id: 'jobbar', role: 'status' }, h('span'), h('div', { class: 'bar' }, h('i'))); document.body.append(bar); }
+  bar.firstChild.textContent = `${job.label} : ${job.done} / ${job.total}. Gardez cet onglet ouvert jusqu'à la fin.`;
+  bar.querySelector('i').style.width = (job.total ? (job.done / job.total) * 100 : 3) + '%';
+}
+
 on((what) => {
+  if (what === 'job') { jobBar(); return; }
   if (what === 'settings' || what === 'all') applySettings();
   if (what === 'all') { banner(); current.key = null; route(); }
 });

@@ -127,6 +127,7 @@ function paint() {
   leadEl.textContent = `${owned.length} casse-têtes sur l'étagère` + (wish ? `, ${wish} en liste d'envies` : '') +
     (known.length ? `. ${Math.round((solved / known.length) * 100)} % déjà résolus au moins une fois${known.length < owned.length ? ` (sur ${known.length} renseignés)` : ''}.` : '.');
 
+  specEl.hidden = state.settings.tileBg !== 'teinte';
   specEl.replaceChildren(...all.filter((i) => i.status !== 'wish').slice().sort(SORTS.color).map((i) =>
     h('a', { href: '#/c/' + i.id, style: { '--c': i.tone }, title: i.name, 'aria-label': i.name })));
 

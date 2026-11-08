@@ -57,11 +57,11 @@ export function render(main) {
       cols.length ? h('div', { class: 'cols', role: 'img', 'aria-label': 'Nombre de casse-têtes arrivés chaque année' }, cols.map((y) => h('div', { title: `${y} : ${years[y] || 0}` }, h('b', { style: { color: 'var(--ink)' } }, years[y] || ''), h('i', { style: { height: ((years[y] || 0) / yMax) * 120 + 'px' } }), h('span', {}, String(y).slice(2))))) : h('p', { class: 'muted' }, 'Renseignez les dates d\'arrivée pour voir la frise.')),
     h('section', { class: 'card', style: { gridColumn: 'span 4' } }, h('h3', {}, 'Difficulté ressentie'), here.some((i) => i.difficulty) ? bars([1, 2, 3, 4, 5].map((d) => [`${d} sur 5`, here.filter((i) => i.difficulty === d).length])) : h('p', { class: 'muted' }, 'Pas encore renseignée.')),
     bySource.length ? h('section', { class: 'card', style: { gridColumn: 'span 6' } }, h('h3', {}, 'D\'où ils viennent'), bars(bySource)) : null,
-    h('section', { class: 'card', style: { gridColumn: bySource.length ? 'span 6' : 'span 12' } }, h('h3', {}, 'Par décennie de fabrication'), (() => {
+    h('section', { class: 'card', style: { gridColumn: bySource.length ? 'span 6' : 'span 12' } }, h('h3', {}, 'Pièces vintage'), (() => {
       const v = here.filter((i) => (i.tags || []).some((t) => t.startsWith('vintage'))).length;
       return h('p', {}, v ? `${v} pièces vintage (étiquette « vintage »), soit ${Math.round((v / here.length) * 100)} % de l'étagère.` : 'Ajoutez l\'étiquette « vintage » aux pièces anciennes pour les compter ici.');
     })()),
-    h('section', { class: 'card', style: { gridColumn: 'span 12' } }, h('h3', {}, 'Le mur de couleurs'),
+    state.settings.tileBg !== 'teinte' ? null : h('section', { class: 'card', style: { gridColumn: 'span 12' } }, h('h3', {}, 'Le mur de couleurs'),
       h('p', { class: 'muted' }, 'Un carré par casse-tête, dans la teinte tirée de sa photo, rangés du rouge au violet puis du noir au blanc.'),
       h('div', { class: 'wall' }, here.slice().sort((a, b) => hue(a.tone) - hue(b.tone)).map((i) => h('a', { href: '#/c/' + i.id, title: i.name, 'aria-label': i.name, style: { '--c': i.tone } })))),
     recRows.length ? h('section', { class: 'card', style: { gridColumn: 'span 12' } }, h('h3', {}, 'Records au chrono'),

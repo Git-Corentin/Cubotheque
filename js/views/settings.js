@@ -1,4 +1,4 @@
-import { state, saveSettings, exportZip, importZip, wipeAll, enterReadonly, signOut, localDataSummary, migrateLocal, collectionCSV } from '../store.js';
+import { state, saveSettings, exportZip, importZip, wipeAll, enterReadonly, signOut, localDataSummary, migrateLocal, collectionCSV, job, interruptedImport } from '../store.js';
 import { supaConfig, testSupabase } from '../backend.js';
 import { h, toast, download, confirmBox } from '../ui.js';
 
@@ -31,6 +31,14 @@ export function render(main) {
       h('label', { class: 'lbl' }, 'Présentation (affichée sous la collection)', about),
       h('div', { class: 'lbl' }, 'Couleur du corps', seg('theme', [['blanc', 'Corps blanc'], ['noir', 'Corps noir'], ['primaire', 'Couleurs vives']])),
       h('div', { class: 'lbl' }, 'Présentation des objets détourés', fx),
+      (() => {
+        const color = h('input', { type: 'color', value: s.tileColor || '#E8E2D4', 'aria-label': 'Couleur des vignettes', hidden: s.tileBg !== 'perso', oninput: () => saveSettings({ tileColor: color.value }) });
+        const box = h('div', { class: 'seg', role: 'group' }, [['uni', 'Uni'], ['perso', 'Couleur choisie'], ['teinte', 'Teinte de chaque objet']].map(([v, l]) => h('button', {
+          type: 'button', 'aria-pressed': String((s.tileBg || 'uni') === v),
+          onclick: (e) => { saveSettings({ tileBg: v }); color.hidden = v !== 'perso'; [...box.children].forEach((b) => b.setAttribute('aria-pressed', String(b === e.currentTarget))); },
+        }, l)));
+        return h('div', { class: 'lbl' }, 'Fond des vignettes', h('div', { class: 'row' }, box, color));
+      })(),
       h('div', { class: 'lbl' }, 'Vue par défaut de la collection', seg('defaultView', [['presentoir', 'Présentoir'], ['etagere', 'À l\'échelle'], ['registre', 'Registre']]))),
 
     h('section', { class: 'card' }, h('h3', {}, 'Sauvegarde'),
@@ -45,6 +53,8 @@ export function render(main) {
         }, 'Télécharger une sauvegarde'),
         h('button', { class: 'btn', onclick: () => download(new Blob([collectionCSV()], { type: 'text/csv;charset=utf-8' }), 'collection.csv') }, 'Exporter pour un tableur (CSV)')),
       h('label', { class: 'lbl' }, 'Restaurer une sauvegarde (.zip)', zipIn),
+      interruptedImport() && !job.running ? h('p', { class: 'err' }, `Un import s'est interrompu (${interruptedImport().done} / ${interruptedImport().total}). Choisissez à nouveau le même fichier et cliquez « Ajouter à l'existant » : il reprendra là où il s'était arrêté, sans doublons.`) : null,
+      h('p', { class: 'hint' }, 'L\'import continue même si vous changez de page dans le site ; sa progression s\'affiche en bas de l\'écran. Ne fermez pas l\'onglet avant la fin.'),
       h('div', { class: 'row' },
         h('button', { class: 'btn', onclick: () => restore(false) }, 'Ajouter à l\'existant'),
         h('button', { class: 'btn danger', onclick: () => restore(true) }, 'Remplacer tout')),
@@ -73,9 +83,13 @@ export function render(main) {
   async function restore(replace) {
     const f = zipIn.files[0];
     if (!f) { toast('Choisissez d\'abord le fichier .zip.', 'err'); zipIn.focus(); return; }
+    if (job.running) { toast('Un import est déjà en cours (barre en bas de l\'écran).', 'err'); return; }
+    const prev = interruptedImport();
+    if (replace && prev?.label === `Import de ${f.name}` && prev.done > 0) {
+      if (await confirmBox(`L'import précédent de ce fichier s'est arrêté à ${prev.done} sur ${prev.total}. Le reprendre là où il en était ?`, { ok: 'Reprendre' })) replace = false;
+    }
     if (replace && !(await confirmBox('Remplacer toute la collection actuelle par cette sauvegarde ?', { ok: 'Remplacer', danger: true }))) return;
-    try { const n = await importZip(f, { replace, onProgress: (i, t, name) => (progress.textContent = `Import ${i} / ${t} : ${name}`) }); toast(`${n} casse-têtes importés.`); } catch (e) { toast('Import impossible : ' + e.message, 'err'); }
-    progress.textContent = '';
+    try { await importZip(f, { replace }); } catch (e) { toast('Import impossible : ' + e.message, 'err'); }
   }
 }
 
