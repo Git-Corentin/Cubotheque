@@ -1,4 +1,4 @@
-import { state, on, CATEGORIES, catLabel, STATUS, SOLVE_STATE, imageURL, getItem, deleteItem } from '../store.js';
+import { state, on, CATEGORIES, catLabel, STATUS, SOLVE_STATE, imageURL, getItem, deleteItem, yearOf } from '../store.js';
 import { h, $, modal, confirmBox, fmtMoney, fmtDate, tilt, toast, esc } from '../ui.js';
 import { libraryFor } from '../methods/library.js';
 import { guessEvent } from '../scramble.js';
@@ -26,7 +26,7 @@ function matches(it) {
   if (ui.status === 'here' && !(it.status === 'owned' || it.status === 'lent')) return false;
   if (ui.status !== 'all' && ui.status !== 'here' && it.status !== ui.status) return false;
   if (ui.q) {
-    const hay = [it.name, it.brand, it.model, it.size, it.notes, ...(it.tags || [])].join(' ').toLowerCase();
+    const hay = [it.name, it.brand, it.model, it.size, it.notes, it.source, yearOf(it), ...(it.tags || [])].join(' ').toLowerCase();
     if (!ui.q.toLowerCase().split(/\s+/).every((w) => hay.includes(w))) return false;
   }
   return true;
@@ -36,7 +36,7 @@ const SORTS = {
   num: (a, b) => a.num - b.num,
   name: (a, b) => a.name.localeCompare(b.name, 'fr'),
   brand: (a, b) => (a.brand || '~').localeCompare(b.brand || '~', 'fr') || a.name.localeCompare(b.name, 'fr'),
-  recent: (a, b) => String(b.acquired || '').localeCompare(String(a.acquired || '')) || b.num - a.num,
+  recent: (a, b) => (yearOf(b) || 0) - (yearOf(a) || 0) || String(b.acquired || '').localeCompare(String(a.acquired || '')) || b.num - a.num,
   hard: (a, b) => (b.difficulty || 0) - (a.difficulty || 0),
   color: (a, b) => hue(a.tone) - hue(b.tone),
 };
@@ -122,9 +122,10 @@ function paint() {
 
   const owned = all.filter((i) => i.status === 'owned' || i.status === 'lent');
   const wish = all.filter((i) => i.status === 'wish').length;
-  const solved = owned.filter((i) => i.solve && i.solve !== 'never').length;
+  const known = owned.filter((i) => i.solve && i.solve !== 'unknown');
+  const solved = known.filter((i) => i.solve !== 'never').length;
   leadEl.textContent = `${owned.length} casse-têtes sur l'étagère` + (wish ? `, ${wish} en liste d'envies` : '') +
-    (owned.length ? `. ${Math.round((solved / owned.length) * 100)} % déjà résolus au moins une fois.` : '.');
+    (known.length ? `. ${Math.round((solved / known.length) * 100)} % déjà résolus au moins une fois${known.length < owned.length ? ` (sur ${known.length} renseignés)` : ''}.` : '.');
 
   specEl.replaceChildren(...all.filter((i) => i.status !== 'wish').slice().sort(SORTS.color).map((i) =>
     h('a', { href: '#/c/' + i.id, style: { '--c': i.tone }, title: i.name, 'aria-label': i.name })));
@@ -161,7 +162,7 @@ function board(list) {
     h('div', { class: 'stage' }, cutEl(it)),
     h('div', {},
       h('div', { class: 'tname' }, it.name || 'Sans nom'),
-      h('div', { class: 'tsub' }, [it.brand, it.size].filter(Boolean).join(', ') || catLabel(it.category)),
+      h('div', { class: 'tsub' }, [it.brand, it.model && it.model.length < 34 ? it.model : it.size].filter(Boolean).join(', ') || catLabel(it.category)),
       it.status === 'wish' ? h('span', { class: 'flag' }, 'Envie') : it.status === 'lent' ? h('span', { class: 'flag' }, 'Prêté') : it.status === 'sold' ? h('span', { class: 'flag' }, 'Parti') : null));
     tilt(t, 12);
     b.append(t);
@@ -211,8 +212,8 @@ function ledger(list) {
       h('td', {}, h('b', {}, it.name)),
       h('td', {}, it.brand),
       h('td', {}, catLabel(it.category)),
-      h('td', {}, SOLVE_STATE.find((s) => s.id === it.solve)?.label || ''),
-      h('td', { class: 'num' }, it.acquired ? new Date(it.acquired).getFullYear() : ''),
+      h('td', {}, it.solve === 'unknown' ? '' : SOLVE_STATE.find((s) => s.id === it.solve)?.label || ''),
+      h('td', { class: 'num' }, yearOf(it) || ''),
       h('td', { class: 'num' }, fmtMoney(it.price))));
   }
   return h('div', { class: 'ledger-wrap' }, h('table', { class: 'ledger' },
@@ -249,16 +250,17 @@ function detailContent(it) {
       h('button', { class: 'btn small', 'aria-label': 'Précédent', onclick: () => step(-1) }, '‹'),
       h('button', { class: 'btn small', 'aria-label': 'Suivant', onclick: () => step(1) }, '›')));
   tilt(st, 16);
-  const dots = h('span', { class: 'dots', 'aria-label': `Difficulté ${it.difficulty} sur 5` }, [1, 2, 3, 4, 5].map((n) => h('i', { class: n <= it.difficulty ? 'on' : '' })));
+  const dots = it.difficulty ? h('span', { class: 'dots', 'aria-label': `Difficulté ${it.difficulty} sur 5` }, [1, 2, 3, 4, 5].map((n) => h('i', { class: n <= it.difficulty ? 'on' : '' }))) : '';
   const rows = [
     ['Catégorie', catLabel(it.category)],
     ['Format', it.size],
     ['Finition', { stickerless: 'Sans autocollants', stickers: 'Autocollants', tiles: 'Tuiles', custom: 'Personnalisée' }[it.finish] || ''],
     ['Aimants', it.magnetic ? 'Oui' : ''],
     ['Difficulté', dots],
-    ['Résolution', SOLVE_STATE.find((s) => s.id === it.solve)?.label],
+    ['Résolution', it.solve === 'unknown' ? '' : SOLVE_STATE.find((s) => s.id === it.solve)?.label],
     ['Statut', it.status !== 'owned' ? STATUS.find((s) => s.id === it.status)?.label : ''],
-    ['Arrivé le', fmtDate(it.acquired)],
+    ['Arrivé', it.acquired ? 'le ' + fmtDate(it.acquired) : it.year ? 'en ' + it.year : ''],
+    ['Provenance', it.source],
     ['Prix', fmtMoney(it.price)],
     ['Dimension', it.sizeMm ? it.sizeMm + ' mm' : ''],
     ['Poids', it.weightG ? it.weightG + ' g' : ''],

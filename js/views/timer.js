@@ -54,7 +54,7 @@ export function render(main, params) {
     h('div', { class: 'timer-tools' },
       h('label', { class: 'lbl' }, 'Puzzle', sel), evLbl,
       h('label', { class: 'check', style: { minHeight: '42px' } }, insp, 'Inspection de 15 s'),
-      h('button', { class: 'btn', onclick: () => newScramble() }, 'Autre mélange')),
+      h('button', { class: 'btn', onclick: () => { newScramble(); clock.focus({ preventScroll: true }); } }, 'Autre mélange')),
     h('div', { class: 'timer-layout' },
       h('div', {}, scrEl, clock),
       h('aside', { class: 'side' }, preview, statsEl, chartEl,
@@ -72,8 +72,9 @@ export function render(main, params) {
     evSel.value = event;
     paintStats(); newScramble();
   }
-  sel.onchange = () => setSession(sel.value);
-  evSel.onchange = () => { event = evSel.value; newScramble(); };
+  const refocus = () => clock.focus({ preventScroll: true });
+  sel.onchange = () => { setSession(sel.value); refocus(); };
+  evSel.onchange = () => { event = evSel.value; newScramble(); refocus(); };
 
   async function newScramble() {
     scrEl.textContent = '…';
@@ -142,10 +143,12 @@ export function render(main, params) {
     if (eff(s) < prevBest && sessionSolves().length > 1) { subEl.textContent = 'Record personnel pour ce puzzle'; toast('Nouveau record : ' + fmt(eff(s))); } else subEl.textContent = '';
     newScramble();
   }
-  const isSpace = (e) => e.code === 'Space' && !e.target.matches('input, textarea, select, button, a');
+  // la barre d'espace pilote le chrono partout sur la page, sauf dans un champ de saisie
+  const typing = (t) => t.isContentEditable || t.matches('textarea, input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=button])');
+  const isSpace = (e) => e.code === 'Space' && !typing(e.target);
   const kd = (e) => {
     if (e.key === 'Escape' && phase !== 'idle') { clearTimeout(holdT); setPhase('idle'); tEl.textContent = '0.00'; subEl.textContent = ''; return; }
-    if (phase === 'run' && !e.repeat && !e.target.matches('input, textarea, select')) { e.preventDefault(); stop(); return; }
+    if (phase === 'run' && !e.repeat && !typing(e.target)) { e.preventDefault(); stop(); return; }
     if (isSpace(e)) { e.preventDefault(); if (!e.repeat) down(); }
   };
   const ku = (e) => { if (phase === 'done' || isSpace(e)) { e.preventDefault(); up(); } };
@@ -208,5 +211,9 @@ export function render(main, params) {
 
   const off = on((w) => (w === 'solves' || w === 'all') && paintStats());
   setSession(session);
+  // focus d'emblée sur le chrono : la barre d'espace marche sans clic préalable
+  document.activeElement?.blur?.();
+  requestAnimationFrame(() => clock.focus({ preventScroll: true }));
+  insp.addEventListener('change', () => clock.focus({ preventScroll: true }));
   return () => { off(); cancelAnimationFrame(raf); document.removeEventListener('keydown', kd); document.removeEventListener('keyup', ku); document.body.classList.remove('solving'); };
 }

@@ -514,3 +514,25 @@ body.solving .top, body.solving .head, body.solving .scramble, body.solving .sid
 .doc-player { width: 100%; height: 280px; }
 .doc-flow a { color: #0057B8; word-break: break-all; }
 @media (max-width: 960px) { .doc-flow .d-player { grid-column: span 3; } }
+
+/* ---------- atelier de détourage ---------- */
+.modal-cut { width: min(1280px, 97vw); max-height: 96vh; }
+.cutout { padding: 18px 20px 16px; display: grid; gap: 12px; }
+.cut-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding-right: 44px; }
+.cut-head h2 { font-size: 1.4rem; }
+.cut-body { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 16px; align-items: start; }
+.cut-stage { position: relative; background: var(--core); border-radius: 12px; padding: 10px; display: grid; place-items: center; min-height: 300px; }
+.cut-canvas { width: 100%; max-height: 68vh; height: auto; object-fit: contain; border-radius: 6px; touch-action: none; cursor: crosshair; }
+.cut-busy { position: absolute; inset: auto 16px 16px 16px; background: var(--ink); color: var(--plastic); padding: 9px 12px; border-radius: 9px; font-size: .9rem; }
+.cut-busy .bar { height: 4px; background: rgb(255 255 255 / .2); border-radius: 2px; margin-top: 6px; overflow: hidden; }
+.cut-busy .bar i { display: block; height: 100%; width: 0; background: var(--yellow); transition: width .2s; }
+.cut-panel { display: grid; gap: 14px; max-height: 72vh; overflow: auto; padding-right: 4px; }
+.cut-group { display: grid; gap: 8px; background: var(--paper); border-radius: 10px; padding: 10px 12px; }
+.cut-group .hint { margin: 0; }
+.cut-tools { flex-wrap: wrap; }
+.cut-swatches { display: flex; gap: 5px; flex-wrap: wrap; }
+.cut-swatches .sw { width: 26px; height: 26px; border-radius: 6px; border: 2px solid rgb(0 0 0 / .3); cursor: pointer; }
+.cut-status { margin: 0; }
+@media (max-width: 860px) { .cut-body { grid-template-columns: 1fr; } .cut-panel { max-height: none; } }
+.doc-icon svg { width: 130px; height: 130px; display: block; }
+.sheet-card .mini svg { width: 54px; height: 54px; }

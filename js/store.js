@@ -20,6 +20,7 @@ export const STATUS = [
   { id: 'sold', label: 'Parti' },
 ];
 export const SOLVE_STATE = [
+  { id: 'unknown', label: 'Non renseigné' },
   { id: 'never', label: 'Jamais résolu' },
   { id: 'help', label: 'Résolu avec un tuto' },
   { id: 'self', label: 'Résolu seul' },
@@ -135,7 +136,7 @@ export function blankItem() {
   return {
     id: uid(), num: nextNum(), name: '', brand: '', model: '', category: 'nxn', size: '', status: 'owned',
     solve: 'never', difficulty: 2, magnetic: false, finish: 'stickerless', acquired: '', price: '', sizeMm: '', weightG: '',
-    notes: '', tags: [], fav: false, imageId: null, tone: '#9aa0a6', event: '', createdAt: Date.now(),
+    notes: '', tags: [], fav: false, imageId: null, tone: '#9aa0a6', event: '', source: '', year: '', createdAt: Date.now(),
   };
 }
 function guard() { if (!state.canEdit) throw new Error('Connectez-vous avec le compte administrateur pour modifier.'); }
@@ -269,9 +270,12 @@ export async function wipeAll() {
   emit('all');
 }
 
+/** Année d'arrivée : date complète si connue, sinon l'année seule. */
+export const yearOf = (it) => (it.acquired ? new Date(it.acquired).getFullYear() : +it.year || null);
+
 /** Liste CSV de la collection (pour un tableur). */
 export function collectionCSV() {
-  const cols = ['num', 'name', 'brand', 'model', 'category', 'size', 'status', 'solve', 'difficulty', 'magnetic', 'finish', 'acquired', 'price', 'sizeMm', 'weightG', 'tags', 'notes'];
+  const cols = ['num', 'name', 'brand', 'model', 'category', 'size', 'status', 'solve', 'difficulty', 'magnetic', 'finish', 'acquired', 'year', 'price', 'source', 'sizeMm', 'weightG', 'tags', 'notes'];
   const esc = (v) => { const s = Array.isArray(v) ? v.join(', ') : String(v ?? ''); return /[;"\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
   const rows = state.items.map((it) => cols.map((c) => esc(c === 'category' ? catLabel(it.category) : it[c])).join(';'));
   return '﻿' + cols.join(';') + '\n' + rows.join('\n');

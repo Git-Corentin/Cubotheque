@@ -1,7 +1,8 @@
 import { state, CATEGORIES, STATUS, SOLVE_STATE, getItem, blankItem, saveItem, saveImage, deleteImage, imageURL } from '../store.js';
 import { studio } from '../camera.js';
 import { h, $, toast } from '../ui.js';
-import { searchImages, fetchBlob, removeBgAI, removeBgFlat, normalize, squareKeep } from '../imagepipe.js';
+import { searchImages, fetchBlob } from '../imagepipe.js';
+import { openCutout } from '../cutout.js';
 import { EVENTS } from '../scramble.js';
 
 const BRANDS = ['GAN', 'MoYu', 'QiYi', 'YJ', 'DaYan', 'ShengShou', 'X-Man', 'Rubik\'s', 'MF8', 'Meffert\'s', 'LanLan', 'Calvin\'s Puzzle', 'WitEden', 'FangShi', 'Diansheng', 'SengSo', 'Cyclone Boys', 'YuXin', 'MoFangGe', 'V-Cube', 'Verypuzzle', 'TomZ', 'Z-Cube', 'Mf8', 'Shuang Ren', 'Fanxin', 'JieHui', 'Kungfu'];
@@ -16,8 +17,6 @@ export function render(main, params) {
   const it = editing ? structuredClone(editing) : blankItem();
   let pending = null; // { blob, tone } image traitée non encore enregistrée
   let source = null;  // Blob source avant détourage
-  let mode = localStorage.getItem('cubo.cutmode') || 'ai';
-  let tol = 42;
 
   /* ---------- champs ---------- */
   const f = {};
@@ -26,8 +25,9 @@ export function render(main, params) {
 
   const brandsList = h('datalist', { id: 'dl-brands' }, [...new Set([...state.items.map((i) => i.brand).filter(Boolean), ...BRANDS])].map((b) => h('option', { value: b })));
   const namesList = h('datalist', { id: 'dl-names' }, NAMES.map((b) => h('option', { value: b })));
-  const diffOut = h('b', {}, it.difficulty);
-  const diff = h('input', { type: 'range', min: 1, max: 5, step: 1, value: it.difficulty, oninput: () => (diffOut.textContent = diff.value) });
+  let diffSet = !!it.difficulty;
+  const diffOut = h('b', {}, it.difficulty || '?');
+  const diff = h('input', { type: 'range', min: 1, max: 5, step: 1, value: it.difficulty || 3, oninput: () => { diffSet = true; diffOut.textContent = diff.value; } });
   f.difficulty = diff;
   f.magnetic = h('input', { type: 'checkbox', checked: !!it.magnetic });
   f.fav = h('input', { type: 'checkbox', checked: !!it.fav });
@@ -44,7 +44,7 @@ export function render(main, params) {
         h('label', { class: 'lbl' }, 'Catégorie', select('category', CATEGORIES.map((c) => [c.id, c.label]))),
         h('label', { class: 'lbl' }, 'Format', input('size', { placeholder: '3x3x3, 2x2x4, 5 couches…' }))),
       h('div', { class: 'grid2' },
-        h('label', { class: 'lbl' }, 'Finition', select('finish', [['stickerless', 'Sans autocollants'], ['stickers', 'Autocollants'], ['tiles', 'Tuiles'], ['custom', 'Personnalisée']])),
+        h('label', { class: 'lbl' }, 'Finition', select('finish', [['', 'Non précisée'], ['stickerless', 'Sans autocollants'], ['stickers', 'Autocollants'], ['tiles', 'Tuiles'], ['custom', 'Personnalisée']])),
         h('div', { class: 'row', style: { alignSelf: 'end', minHeight: '42px' } },
           h('label', { class: 'check' }, f.magnetic, 'Aimanté'), h('label', { class: 'check' }, f.fav, 'Coup de cœur')))),
     h('fieldset', {}, h('legend', {}, 'Vous et lui'),
@@ -55,9 +55,12 @@ export function render(main, params) {
         h('label', { class: 'lbl' }, h('span', {}, 'Difficulté ressentie : ', diffOut, ' / 5'), diff),
         h('label', { class: 'lbl' }, 'Mélange au chrono', select('event', [['', 'Deviner d\'après le nom'], ...EVENTS.map((e) => [e.id, e.label])])))),
     h('fieldset', {}, h('legend', {}, 'Acquisition et mesures'),
-      h('div', { class: 'grid2' },
+      h('div', { class: 'grid3' },
         h('label', { class: 'lbl' }, 'Arrivé le', input('acquired', { type: 'date' })),
+        h('label', { class: 'lbl' }, h('span', {}, 'ou l\'année ', h('small', {}, 'si la date est inconnue')), input('year', { type: 'number', min: 1970, max: 2100, placeholder: 'ex. 2019' })),
         h('label', { class: 'lbl' }, 'Prix (€)', input('price', { type: 'number', step: '0.01', min: 0 }))),
+      h('label', { class: 'lbl' }, 'Provenance', input('source', { list: 'dl-sources', placeholder: 'Leboncoin, Aliexpress, brocante, cadeau…' })),
+      h('datalist', { id: 'dl-sources' }, [...new Set(state.items.map((i) => i.source).filter(Boolean))].map((v) => h('option', { value: v }))),
       h('div', { class: 'grid2' },
         h('label', { class: 'lbl' }, h('span', {}, 'Plus grande dimension (mm) ', h('small', {}, 'pour la vue à l\'échelle')), input('sizeMm', { type: 'number', min: 5, max: 400 })),
         h('label', { class: 'lbl' }, 'Poids (g)', input('weightG', { type: 'number', min: 1 })))),
@@ -89,49 +92,22 @@ export function render(main, params) {
 
   async function process() {
     if (!source) return;
-    const run = ++process.n;
-    try {
-      let cut;
-      if (mode === 'ai') {
-        progress('Préparation du détourage', 0.02);
-        cut = await removeBgAI(source, (l, fr) => run === process.n && progress(l, fr));
-      } else if (mode === 'flat') {
-        progress('Détourage du fond uni', 0.5);
-        cut = await removeBgFlat(source, tol);
-      }
-      if (run !== process.n) return;
-      pending = cut ? await normalize(cut) : await squareKeep(source);
-      it.tone = pending.tone; toneIn.value = pending.tone; preview.style.setProperty('--tone', it.tone);
-      status.textContent = mode === 'keep' ? 'Image recadrée au carré, fond conservé.' : 'Détourée, recadrée et centrée. La teinte de la fiche est tirée de l\'objet ; vous pouvez la changer.';
-      await showCurrent();
-    } catch (e) {
-      console.error(e);
-      $('.wk-progress', preview)?.remove();
-      status.textContent = '';
-      toast(mode === 'ai' ? 'Le détourage précis n\'a pas pu se charger (connexion ?). Essayez « Fond uni ».' : 'Le détourage a échoué : ' + e.message, 'err');
-    }
+    const res = await openCutout(source, { title: f.name.value ? `Détourage : ${f.name.value}` : 'Atelier de détourage' });
+    if (!res) { status.textContent = pending ? '' : 'Détourage annulé : choisissez une autre image ou relancez l\'atelier.'; return; }
+    pending = res;
+    it.tone = pending.tone; toneIn.value = pending.tone; preview.style.setProperty('--tone', it.tone);
+    status.textContent = 'Détourée, recadrée et centrée. La teinte de la fiche est tirée de l\'objet ; vous pouvez la changer.';
+    await showCurrent();
   }
-  process.n = 0;
 
   async function useBlob(blob, cred = '') {
     source = blob; it.imageCredit = cred; credit.textContent = cred;
     modeBar.hidden = false;
-    pending = null;
-    preview.replaceChildren(h('div', { class: 'stage' }, h('div', { class: 'cut' }, h('img', { src: URL.createObjectURL(blob), alt: 'Image source' }))));
     await process();
   }
 
-  const modeBar = h('div', { class: 'row', hidden: true });
-  const tolRow = h('label', { class: 'lbl', hidden: mode !== 'flat' }, 'Tolérance du fond', h('input', { type: 'range', min: 10, max: 120, value: tol, onchange: (e) => { tol = +e.target.value; process(); } }));
-  const modeSeg = h('div', { class: 'seg', role: 'group', 'aria-label': 'Méthode de détourage' },
-    [['ai', 'Détourage précis'], ['flat', 'Fond uni'], ['keep', 'Garder le fond']].map(([v, l]) => h('button', {
-      type: 'button', 'aria-pressed': String(mode === v), onclick: (e) => {
-        mode = v; localStorage.setItem('cubo.cutmode', v);
-        [...modeSeg.children].forEach((b) => b.setAttribute('aria-pressed', String(b === e.currentTarget)));
-        tolRow.hidden = v !== 'flat'; process();
-      },
-    }, l)));
-  modeBar.append(modeSeg, tolRow);
+  const modeBar = h('div', { class: 'row', hidden: true },
+    h('button', { type: 'button', class: 'btn small', onclick: () => process() }, 'Retoucher le détourage'));
 
   // sources
   const q = h('input', { class: 'field', type: 'search', placeholder: 'Nom du casse-tête', 'aria-label': 'Recherche d\'images' });
@@ -196,8 +172,8 @@ export function render(main, params) {
     onsubmit: async (e) => {
       e.preventDefault();
       if (!f.name.value.trim()) { f.name.focus(); toast('Le nom est obligatoire.', 'err'); return; }
-      for (const k of ['name', 'brand', 'model', 'category', 'size', 'finish', 'status', 'solve', 'event', 'acquired', 'price', 'sizeMm', 'weightG']) it[k] = f[k].value.trim?.() ?? f[k].value;
-      it.difficulty = +diff.value; it.magnetic = f.magnetic.checked; it.fav = f.fav.checked; it.notes = f.notes.value;
+      for (const k of ['name', 'brand', 'model', 'category', 'size', 'finish', 'status', 'solve', 'event', 'acquired', 'year', 'price', 'source', 'sizeMm', 'weightG']) it[k] = f[k].value.trim?.() ?? f[k].value;
+      it.difficulty = diffSet ? +diff.value : 0; it.magnetic = f.magnetic.checked; it.fav = f.fav.checked; it.notes = f.notes.value;
       it.tags = f.tags.value.split(',').map((s) => s.trim()).filter(Boolean);
       it.tone = toneIn.value;
       const saveBtn = e.submitter; if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Enregistrement…'; }

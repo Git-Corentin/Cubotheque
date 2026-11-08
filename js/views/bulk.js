@@ -1,6 +1,7 @@
 import { state, CATEGORIES, blankItem, saveItem, saveImage, catLabel } from '../store.js';
 import { h, $, modal, toast } from '../ui.js';
-import { searchImages, fetchBlob, removeBgAI, removeBgFlat, normalize, squareKeep } from '../imagepipe.js';
+import { searchImages, fetchBlob } from '../imagepipe.js';
+import { openCutout } from '../cutout.js';
 
 export function guessCategory(name) {
   const s = name.toLowerCase();
@@ -73,7 +74,6 @@ export function render(main) {
 
 function photoQueue(list) {
   let i = 0;
-  let mode = localStorage.getItem('cubo.cutmode') || 'ai';
   const body = h('div', { style: { padding: '26px', display: 'grid', gap: '14px' } });
   const m = modal(body, { wide: true, label: 'Atelier photo' });
   const onPaste = (e) => { const f = [...(e.clipboardData?.files || [])].find((x) => x.type.startsWith('image/')); if (f) { e.preventDefault(); take(f, ''); } };
@@ -84,16 +84,13 @@ function photoQueue(list) {
   async function take(blob, credit) {
     if (busy) return; busy = true;
     const it = list[i];
-    const st = $('.qstatus', body);
     try {
-      let cut = null;
-      if (mode === 'ai') cut = await removeBgAI(blob, (l, f) => (st.textContent = `${l} ${Math.round(f * 100)} %`));
-      else if (mode === 'flat') { st.textContent = 'Détourage…'; cut = await removeBgFlat(blob); }
-      const res = cut ? await normalize(cut) : await squareKeep(blob);
+      const res = await openCutout(blob, { title: `Détourage : ${it.name}` });
+      if (!res) { busy = false; return; }
       it.imageId = await saveImage(res.blob); it.tone = res.tone; it.imageCredit = credit;
       await saveItem(it);
       i++; busy = false; show();
-    } catch (e) { busy = false; st.textContent = ''; toast(e.message || 'Échec du détourage', 'err'); }
+    } catch (e) { busy = false; toast(e.message || 'Échec de l\'enregistrement', 'err'); }
   }
 
   async function show() {
@@ -102,8 +99,6 @@ function photoQueue(list) {
     const results = h('div', { class: 'results', style: { maxHeight: '420px' } }, h('p', { class: 'hint', style: { gridColumn: '1/-1', padding: '10px' } }, h('span', { class: 'spin' }), ' Recherche…'));
     const q = h('input', { class: 'field', value: it.name + (it.brand ? ' ' + it.brand : ''), 'aria-label': 'Recherche' });
     const fileIn = h('input', { type: 'file', accept: 'image/*', onchange: () => fileIn.files[0] && take(fileIn.files[0], '') });
-    const seg = h('div', { class: 'seg' }, [['ai', 'Détourage précis'], ['flat', 'Fond uni'], ['keep', 'Garder le fond']].map(([v, l]) =>
-      h('button', { type: 'button', 'aria-pressed': String(mode === v), onclick: (e) => { mode = v; localStorage.setItem('cubo.cutmode', v); [...seg.children].forEach((b) => b.setAttribute('aria-pressed', String(b === e.currentTarget))); } }, l)));
     const search = async () => {
       try {
         const r = await searchImages(q.value);
@@ -119,7 +114,7 @@ function photoQueue(list) {
       h('p', { class: 'muted num' }, `${i + 1} sur ${list.length}`),
       h('h2', {}, it.name),
       h('div', { class: 'row', style: { flexWrap: 'nowrap' } }, q, h('button', { class: 'btn solid', onclick: search }, 'Chercher')),
-      seg, results,
+      results,
       h('div', { class: 'row' },
         h('label', { class: 'btn small solid', style: { cursor: 'pointer' } }, h('input', { type: 'file', accept: 'image/*', capture: 'environment', class: 'sr', onchange: (e) => e.target.files[0] && take(e.target.files[0], '') }), 'Prendre une photo'),
         h('span', { class: 'hint' }, 'ou un fichier :'), fileIn,

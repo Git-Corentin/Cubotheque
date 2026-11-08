@@ -1,7 +1,7 @@
 // Service worker : le site s'ouvre hors connexion et s'installe comme une application.
 // Stratégie « réseau d'abord » pour les pages et scripts du site (les mises à jour arrivent tout de suite),
 // « cache d'abord » pour les bibliothèques versionnées, polices et images de la base.
-const VERSION = 'cubo-v2';
+const VERSION = 'cubo-v3';
 const SHELL = ['./', 'index.html', 'css/app.css', 'js/main.js', 'manifest.webmanifest', 'icons/icon-192.png'];
 
 self.addEventListener('install', (e) => {

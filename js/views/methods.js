@@ -5,6 +5,7 @@ import { generate } from '../gabarit.js';
 import { KINDS, newBlock, editor, docBlock, cubeState, cubeSize, rich } from '../methods/blocks.js';
 import { library, libSheet } from '../methods/library.js';
 import { COVERAGE } from '../methods/coverage.js';
+import { puzzleIcon, iconFor } from '../methods/icons.js';
 
 export async function render(main, params) {
   if (!params.id) return list(main);
@@ -27,6 +28,7 @@ function miniOf(s) {
   const c = s.blocks.find((b) => b.type === 'cube');
   if (it?.imageId) imageURL(it.imageId, true).then((u) => u && mini.replaceChildren(h('img', { src: u, alt: '' })));
   else if (c) { try { mini.innerHTML = C.renderTop(cubeState(c), cubeSize(c), s.scheme || 'jaune'); } catch { /* */ } }
+  else if (iconFor(s)) mini.innerHTML = puzzleIcon(iconFor(s));
   else mini.textContent = (s.puzzle || '?').slice(0, 2);
   return mini;
 }
@@ -144,7 +146,7 @@ async function doc(main, sheet) {
     h('article', { class: 'doc' },
       h('header', { class: 'doc-head' },
         h('div', {}, h('h1', {}, sheet.title), h('div', { class: 'meta' }, [sheet.puzzle, it?.brand].filter(Boolean).join(', '))),
-        it?.imageId ? img : h('span')),
+        it?.imageId ? img : iconFor(sheet) ? h('div', { class: 'doc-icon', html: puzzleIcon(iconFor(sheet)) }) : h('span')),
       sheet.intro ? h('div', { class: 'doc-intro' }, ...rich(sheet.intro)) : null,
       flow,
       h('footer', { class: 'doc-foot' }, sheet.lib ? `${state.settings.title}, bibliothèque de méthodes.` : `${state.settings.title}, fiche mise à jour le ${fmtDate(sheet.updated || Date.now())}.`)));

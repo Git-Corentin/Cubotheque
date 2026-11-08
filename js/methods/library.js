@@ -59,7 +59,7 @@ export function buildLibrary() {
   const L = [];
 
   L.push(sheet({
-    id: 'lib-333-debutant', title: '3x3 : méthode débutant', puzzle: '3x3x3', events: ['333'], keywords: /3x3|rubik|cube 3/i,
+    id: 'lib-333-debutant', icon: 'nxn:3', title: '3x3 : méthode débutant', puzzle: '3x3x3', events: ['333'], keywords: /3x3|rubik|cube 3/i,
     intro: 'La méthode couche par couche, en 7 étapes. Le cube est tenu jaune en haut, vert devant ; la croix blanche est donc en bas. Chaque diagramme montre le cas que l\'algorithme résout.',
     blocks: [
       text('1. La croix blanche', 'Formez une croix blanche dont chaque arête correspond aussi au centre de sa face latérale. Étape intuitive : amenez une arête au-dessus de sa place, puis tournez la face concernée deux fois (F2, R2…).'),
@@ -83,7 +83,7 @@ export function buildLibrary() {
   }));
 
   L.push(sheet({
-    id: 'lib-333-2look', title: '3x3 : CFOP en 2 temps (OLL et PLL)', puzzle: '3x3x3', events: ['333'], keywords: /3x3|rubik/i,
+    id: 'lib-333-2look', icon: 'nxn:3', title: '3x3 : CFOP en 2 temps (OLL et PLL)', puzzle: '3x3x3', events: ['333'], keywords: /3x3|rubik/i,
     intro: 'Le passage entre la méthode débutant et le CFOP complet : 10 algorithmes pour orienter, 6 pour permuter.',
     blocks: [
       text('Orienter les arêtes', 'Point, L ou ligne.'),
@@ -99,20 +99,20 @@ export function buildLibrary() {
 
   const groups = ollGroups();
   L.push(sheet({
-    id: 'lib-333-oll', title: '3x3 : les 57 OLL', puzzle: '3x3x3', events: ['333'], keywords: /3x3|rubik/i,
+    id: 'lib-333-oll', icon: 'nxn:3', title: '3x3 : les 57 OLL', puzzle: '3x3x3', events: ['333'], keywords: /3x3|rubik/i,
     intro: 'Orientation de la dernière couche en un seul algorithme. Classement automatique d\'après le nombre d\'arêtes déjà orientées, puis par numéro.',
     blocks: Object.entries(groups).flatMap(([g, list]) => [text(g, ''), ...list.sort((a, b) => a[0] - b[0]).map(([k, alg]) => cube(`OLL ${k}`, alg, { mask: 'oll' }))]),
   }));
 
   const PLLG = [['Arêtes seulement', ['Ua', 'Ub', 'H', 'Z']], ['Coins seulement', ['Aa', 'Ab', 'E']], ['Échanges voisins', ['T', 'F', 'Ja', 'Jb', 'Ra', 'Rb']], ['Échanges en diagonale', ['V', 'Y', 'Na', 'Nb']], ['Les G', ['Ga', 'Gb', 'Gc', 'Gd']]];
   L.push(sheet({
-    id: 'lib-333-pll', title: '3x3 : les 21 PLL', puzzle: '3x3x3', events: ['333'], keywords: /3x3|rubik/i,
+    id: 'lib-333-pll', icon: 'nxn:3', title: '3x3 : les 21 PLL', puzzle: '3x3x3', events: ['333'], keywords: /3x3|rubik/i,
     intro: 'Permutation de la dernière couche. Les flèches sont calculées à partir de l\'algorithme.',
     blocks: PLLG.flatMap(([g, ks]) => [text(g, ''), ...ks.map((k) => cube(`${k}-perm`, PLL[k], { mask: 'pll', arrows: true }))]),
   }));
 
   L.push(sheet({
-    id: 'lib-222', title: '2x2 : méthode Ortega', puzzle: '2x2x2', events: ['222'], keywords: /2x2|pocket/i,
+    id: 'lib-222', icon: 'nxn:2', title: '2x2 : méthode Ortega', puzzle: '2x2x2', events: ['222'], keywords: /2x2|pocket/i,
     intro: 'Trois étapes : une face (pas forcément une couche), orientation du dessus, puis permutation des deux couches d\'un coup (PBL).',
     blocks: [
       text('1. Une face', 'Faites une face d\'une couleur, sans vous soucier des côtés. Intuitif, 4 à 6 mouvements avec de l\'entraînement.'),
@@ -128,7 +128,7 @@ export function buildLibrary() {
   }));
 
   L.push(sheet({
-    id: 'lib-444', title: '4x4 : réduction et parités', puzzle: '4x4x4', events: ['444'], keywords: /4x4|revenge/i,
+    id: 'lib-444', icon: 'nxn:4', title: '4x4 : réduction et parités', puzzle: '4x4x4', events: ['444'], keywords: /4x4|revenge/i,
     intro: 'On réduit le 4x4 à un 3x3 : centres de 2x2, puis arêtes appariées, puis résolution comme un 3x3. Notation : Rw = deux couches de droite, 2R = la deuxième couche seule.',
     blocks: [
       text('1. Les centres', 'Faites deux centres opposés (blanc puis jaune), puis les quatre autres en respectant l\'ordre des couleurs (vert, rouge, bleu, orange dans le sens des aiguilles d\'une montre, jaune en haut). Les mouvements de tranche (Rw, 2R) déplacent des paires sans casser les centres finis.'),
@@ -143,7 +143,7 @@ export function buildLibrary() {
   }));
 
   L.push(sheet({
-    id: 'lib-555', title: '5x5 et plus : réduction', puzzle: '5x5x5', events: ['555', '666', '777'], keywords: /5x5|6x6|7x7|professor|v-cube/i,
+    id: 'lib-555', icon: 'nxn:5', title: '5x5 et plus : réduction', puzzle: '5x5x5', events: ['555', '666', '777'], keywords: /5x5|6x6|7x7|professor|v-cube/i,
     intro: 'Même principe que le 4x4 : centres de 3x3, puis arêtes de 3 pièces, puis comme un 3x3. Les 6x6 et 7x7 se résolvent de la même façon, avec des centres et des arêtes plus grands.',
     blocks: [
       text('1. Les centres', 'Formez chaque centre de 3x3 : d\'abord des barres de 3, puis on les assemble. Même ordre de couleurs qu\'au 4x4.'),
@@ -155,7 +155,7 @@ export function buildLibrary() {
   }));
 
   L.push(sheet({
-    id: 'lib-pyra', title: 'Pyraminx : méthode débutant', puzzle: 'Pyraminx', events: ['pyram'], keywords: /pyraminx|tetraminx/i,
+    id: 'lib-pyra', icon: 'pyraminx', title: 'Pyraminx : méthode débutant', puzzle: 'Pyraminx', events: ['pyram'], keywords: /pyraminx|tetraminx/i,
     intro: 'Quatre étapes, quelques algorithmes courts. Notation WCA : U, L, R, B tournent deux couches autour d\'un sommet ; u, l, r, b ne tournent que la pointe.',
     blocks: [
       text('1. Les pointes', 'Tournez chaque pointe pour qu\'elle prenne les couleurs de la pièce de sommet juste en dessous.'),
@@ -169,7 +169,7 @@ export function buildLibrary() {
   }));
 
   L.push(sheet({
-    id: 'lib-skewb', title: 'Skewb : méthode débutant', puzzle: 'Skewb', events: ['skewb'], keywords: /skewb/i,
+    id: 'lib-skewb', icon: 'skewb', title: 'Skewb : méthode débutant', puzzle: 'Skewb', events: ['skewb'], keywords: /skewb/i,
     intro: 'Notation WCA : R, L, U, B tournent la moitié du cube autour d\'un coin. Le « sledgehammer » R\' L R L\' sert à presque tout.',
     blocks: [
       text('1. Première couche', 'Faites une face (centre et 4 coins) avec les coins bien assortis aux centres latéraux. Intuitif.'),
@@ -181,7 +181,7 @@ export function buildLibrary() {
   }));
 
   L.push(sheet({
-    id: 'lib-minx', title: 'Megaminx : méthode débutant', puzzle: 'Megaminx', events: ['minx'], keywords: /megaminx|kilominx/i,
+    id: 'lib-minx', icon: 'megaminx', title: 'Megaminx : méthode débutant', puzzle: 'Megaminx', events: ['minx'], keywords: /megaminx|kilominx/i,
     intro: 'Le Megaminx se résout comme un 3x3 avec plus de pièces. Notation cubing.js : U, F, R, L, BR, BL pour la couronne du haut, FR, FL, DR, DL, B pour celle du bas ; U2 = deux cinquièmes de tour.',
     blocks: [
       text('1. L\'étoile', 'Les cinq arêtes blanches autour du centre blanc, assorties aux centres voisins.'),
@@ -195,7 +195,7 @@ export function buildLibrary() {
   }));
 
   L.push(sheet({
-    id: 'lib-sq1', title: 'Square-1 : méthode débutant', puzzle: 'Square-1', events: ['sq1'], keywords: /square[- ]?1|sq-?1/i,
+    id: 'lib-sq1', icon: 'sq1', title: 'Square-1 : méthode débutant', puzzle: 'Square-1', events: ['sq1'], keywords: /square[- ]?1|sq-?1/i,
     intro: 'Notation : (x,y) tourne le haut de x douzièmes et le bas de y douzièmes, / tourne la moitié droite de 180°.',
     blocks: [
       text('1. Retrouver la forme de cube', 'Ramenez d\'abord tous les coins dans une couche (« six coins en haut » puis répartition), puis remettez les deux couches en carré. C\'est l\'étape à apprendre par cœur avec des schémas : la planche libre (gabarit Square-1) permet de les dessiner.'),
@@ -207,7 +207,7 @@ export function buildLibrary() {
   }));
 
   L.push(sheet({
-    id: 'lib-clock', title: 'Clock : méthode débutant', puzzle: 'Clock', events: ['clock'], keywords: /clock/i,
+    id: 'lib-clock', icon: 'clock', title: 'Clock : méthode débutant', puzzle: 'Clock', events: ['clock'], keywords: /clock/i,
     intro: 'But : tous les cadrans à midi des deux côtés. Un pin levé relie la roue d\'angle voisine aux cadrans qui l\'entourent. Les coins sont partagés : tourner un coin à l\'avant le tourne en sens inverse à l\'arrière.',
     blocks: [
       text('1. La croix avant', 'Levez un seul pin et tournez sa roue : le coin et les arêtes voisines bougent ensemble. Ramenez les quatre arêtes sur l\'heure du centre.'),
@@ -219,13 +219,15 @@ export function buildLibrary() {
   }));
 
   L.push(sheet({
-    id: 'lib-shapemods', title: 'Shape mods du 3x3 : Mirror, Axis, Ghost, Fisher, Windmill, Void…', puzzle: '3x3x3 modifié', events: [], cats: ['shape'], keywords: /mirror|axis|ghost|fisher|windmill|mastermorphix|void|pillow|penrose|barrel|megamorphix|pyramorphix|spy/i,
+    id: 'lib-shapemods', icon: 'mirror', title: 'Shape mods du 3x3 : Mirror, Axis, Ghost, Fisher, Windmill, Void…', puzzle: '3x3x3 modifié', events: [], cats: ['shape'], keywords: /mirror|axis|ghost|fisher|windmill|wheel|mastermorphix|void|pillow|penrose|barrel|pandora|sudokube|apple|lemon|megamorphix|pyramorphix|gigamorphix|spy/i,
     intro: 'Tous ces puzzles cachent un mécanisme de 3x3 : la méthode est la même, seule la reconnaissance change. Ce qui suit vaut pour la plupart des shape mods.',
     blocks: [
       text('Mirror (Mirror Blocks)', 'Chaque pièce a une épaisseur différente : on lit la forme au lieu de la couleur. Commencez par la face la plus épaisse (le « gros » bas), puis comme un 3x3. Le rendu « relief » ci-dessous montre la même situation qu\'un Sune, en formes.'),
       cube('Sune sur un Mirror', "R U R' U R U2 R'", { style: 'mirror', views: ['top', 'iso'] }),
-      text('Axis, Fisher, Windmill', 'Les centres ont une orientation visible. Repérez quelle pièce est un centre (elle ne bouge que sur elle-même). Si à la fin un centre est tourné de 180°, faites l\'algorithme ci-dessous, qui ne bouge que le centre du dessus.'),
+      text('Axis, Fisher, Windmill, Wheel', 'Les centres ont une orientation visible. Repérez quelle pièce est un centre (elle ne bouge que sur elle-même). Si à la fin un centre est tourné de 180°, faites l\'algorithme ci-dessous, qui ne bouge que le centre du dessus.'),
       cube('Centre du dessus tourné d\'un demi-tour', "R U R' U R U R' U R U R' U R U R' U R U R' U", { views: ['iso'], note: 'Soit (R U R\' U) répété 5 fois. Aucune autre pièce ne change.' }),
+      text('Sudokube et cubes à images', 'Les centres portent un chiffre ou un dessin : leur orientation compte. Même remède que ci-dessus pour un centre retourné d\'un demi-tour ; pour un quart de tour, résolvez le cube en gardant ce centre de travers, puis corrigez deux centres à la fois avec la même idée.'),
+      text('Barrel, Pandora, Penrose, Pillow, Earth Pillow, Apple et Lemon Cube', 'Mécanisme de 3x3 sous une autre forme : ce sont les couleurs (ou les motifs) qui guident, pas les arêtes. Sur les formes rondes (Barrel, Apple, Lemon), repérez d\'abord les centres : ce sont les seules pièces qui ne quittent jamais leur face. Le Penrose et le Pandora cachent des pièces qui ont l\'air coupées : résolvez d\'abord les coins, puis comme un 3x3.'),
       text('Ghost Cube, Mastermorphix, Pyramorphix', 'Mêmes principes que l\'Axis, avec des centres orientés. Le Pyramorphix et le Mastermorphix ont des centres que l\'on voit peu : résolvez d\'abord les coins (les grandes pointes).'),
       text('Void Cube', 'Sans centres, il peut finir avec deux arêtes échangées (parité). Remède : un quart de tour d\'une tranche du milieu (M, E ou S), puis on reprend la résolution normalement.'),
       cube('Void Cube', '', { mask: 'void', views: ['iso', 'top'] }),
@@ -233,12 +235,53 @@ export function buildLibrary() {
   }));
 
   L.push(sheet({
-    id: 'lib-cuboids', title: 'Cuboïdes : Domino, Tower et compagnie', puzzle: 'Cuboïdes', events: [], cats: ['cuboid'], keywords: /domino|tower|cuboid|cuboïde/i,
+    id: 'lib-cuboids', icon: 'cuboid', title: 'Cuboïdes : Domino, Tower et compagnie', puzzle: 'Cuboïdes', events: [], cats: ['cuboid'], keywords: /domino|tower|cuboid|cuboïde|floppy|banana|1×2×3|3×3×4/i,
     intro: 'Sur un cuboïde, les faces rectangulaires ne tournent que par demi-tours (R2, F2…), les faces carrées par quarts de tour. Le diagramme refuse les mouvements impossibles.',
     blocks: [
       text('3x3x2 Domino', 'Résolvez d\'abord une couche entière, puis la seconde. Pour la dernière couche, un échange utile qui ne touche pas à la couche du bas :'),
       cube('Domino : échange dans la couche du haut', 'R2 U2 R2 U2 R2', { dims: [3, 2, 3], views: ['iso', 'top'], arrows: true }),
-      text('2x2x3 Tower, 3x3x4, 3x3x5…', 'Même logique : réduire au cube le plus proche quand c\'est possible (un 3x3x5 se résout souvent comme un 3x3 après avoir apparié les tranches), et ne travailler qu\'en demi-tours sur les faces longues.'),
+      text('Floppy (1x3x3) et Floppy Mirror', 'Seuls des demi-tours sont possibles. Résolvez les coins (leurs places), puis retournez les arêtes avec l\'un des deux algorithmes. Sur le Floppy Mirror, lisez les formes au lieu des couleurs.'),
+      cube('Floppy : échanger deux coins', 'F2 R2 F2 R2', { dims: [3, 1, 3], views: ['iso', 'net'] }),
+      cube('Floppy : retourner deux arêtes opposées', 'R2 L2 F2 R2 L2 B2', { dims: [3, 1, 3], views: ['iso', 'net'] }),
+      cube('Floppy : retourner deux arêtes voisines', 'R2 F2 R2 F2 R2 F2', { dims: [3, 1, 3], views: ['iso', 'net'] }),
+      text('2x2x3 (Banana, Tower), 3x3x4, 3x3x5…', 'Même logique : réduire au cube le plus proche quand c\'est possible (un 3x3x5 se résout souvent comme un 3x3 après avoir apparié les tranches), et ne travailler qu\'en demi-tours sur les faces longues.'),
+    ],
+  }));
+
+  L.push(sheet({
+    id: 'lib-dino-redi', icon: 'skewb', title: 'Dino Cube et Redi Cube', puzzle: 'Dino, Redi', events: ['redi_cube'], keywords: /dino|redi|rex/i,
+    intro: 'Deux cubes qui tournent autour des coins et ne gardent que des arêtes (Dino) ou des arêtes et des coins (Redi). Un seul algorithme de cycle suffit, combiné à des mouvements de préparation.',
+    blocks: [
+      text('Dino Cube', 'Il n\'y a que 12 arêtes et pas de centres : les couleurs se déduisent des arêtes déjà placées. Faites une face entière (4 arêtes), puis les 4 arêtes du milieu, puis la dernière face avec le cycle de trois arêtes, en amenant les trois arêtes concernées au bon endroit par un mouvement de préparation que l\'on défait ensuite. Notation : chaque mouvement porte le nom du coin qui tourne (UFR, DRF…).'),
+      player('Dino : cycle de trois arêtes', 'pg:Dino Cube', "DRF UBL DRF UBL'", { note: 'Ne touche à aucune autre arête.' }),
+      text('Redi Cube', 'Les 8 coins jouent le rôle des centres : leurs couleurs disent où vont les arêtes. Orientez d\'abord les coins d\'une face (ils tournent sur place), placez les arêtes de cette face, puis la couche du milieu, puis la dernière face avec le cycle de trois arêtes.'),
+      player('Redi : cycle de trois arêtes', 'redi_cube', "R B R B' R", { note: 'Ne touche à aucun coin.' }),
+      text('Ivy Cube', 'Trois coins mobiles, trois coins fixes et six centres en pétale : résolvez en tournant les coins mobiles pour regrouper chaque couleur. Intuitif, pas d\'algorithme nécessaire.'),
+    ],
+  }));
+
+  L.push(sheet({
+    id: 'lib-minx-famille', icon: 'megaminx', title: 'Kilominx, Gigaminx et autres minx', puzzle: 'Dodécaèdres', events: ['kilominx'], keywords: /kilominx|gigaminx|teraminx|minx/i,
+    intro: 'Le Kilominx est un Megaminx sans arêtes ni centres : il ne reste que les 20 coins. Les grands minx se ramènent au Megaminx par réduction.',
+    blocks: [
+      text('Kilominx et Master Kilominx', 'Résolvez une première face de coins, puis remontez couronne par couronne comme sur le Megaminx. Pour la dernière face, les algorithmes de coins du Megaminx fonctionnent tels quels. Le Master Kilominx se réduit à un Kilominx : groupez d\'abord centres et arêtes de chaque face.'),
+      player('Placer trois coins', 'kilominx', "L' U R U' L U R'"),
+      player('Orienter les coins (Sune)', 'kilominx', "R U R' U R U2' R'"),
+      player('Tourner un coin sur place', 'kilominx', "R' FR' R FR", { anchor: 'start', note: 'À répéter par deux, comme sur le Megaminx.' }),
+      text('Gigaminx', 'Réduction : centres de chaque face (5 pièces autour du centre), puis appariement des arêtes en groupes de trois, puis résolution comme un Megaminx avec les faces extérieures.'),
+      text('Pyraminx Crystal et Skewb Ultimate', 'Le Pyraminx Crystal n\'a que des coins et des arêtes, tournés par faces profondes : résolvez une face, puis l\'étoile opposée. Le Skewb Ultimate a le mécanisme d\'un Skewb : la fiche Skewb s\'applique, en lisant les formes des pièces.'),
+    ],
+  }));
+
+  L.push(sheet({
+    id: 'lib-morphix', icon: 'pyraminx', title: 'Famille Morphix et formes trompeuses', puzzle: 'Pyramorphix, Mastermorphix, Megamorphix, Gigamorphix', events: [], keywords: /morphix|dodecaedro|twisty skewb|illusion/i,
+    intro: 'Ces puzzles ont la forme d\'une pyramide ou d\'un dodécaèdre, mais cachent un mécanisme connu. On applique la méthode du cube correspondant, en repérant ce que devient chaque pièce.',
+    blocks: [
+      text('Correspondances', '**Pyramorphix** = 2x2. **Mastermorphix** = 3x3 à centres orientés. **Megamorphix** = 4x4. **Gigamorphix** = 5x5. **Dodécaèdre 2x2 (LanLan)** = 2x2. **Twisty Skewb** et **Skewb Ultimate** = Skewb. **V-Cube 7 Illusion** = 7x7 dont les couleurs trompent l\'œil : résolvez-le comme un 7x7 en suivant le motif.'),
+      text('Pyramorphix', 'Les 4 grandes pointes sont des coins du 2x2 ; les petites pièces triangulaires aussi, mais leur couleur se lit sur deux faces. Méthode Ortega ou couche par couche du 2x2.'),
+      text('Mastermorphix, Megamorphix, Gigamorphix', 'Les centres ont une orientation : un centre bien placé mais tourné rend la face impossible. Commencez par les pièces à pointe (les coins du cube caché), puis les arêtes, et gardez l\'algorithme du centre retourné de la fiche shape mods. Megamorphix et Gigamorphix : réduction comme les 4x4 et 5x5, en appariant d\'abord les centres selon leur forme.'),
+      player('Mastermorphix', 'pg:Mastermorphix', '', { anchor: 'start', note: 'Lecteur 3D : faites-le tourner pour reconnaître les pièces.' }),
+      player('Pyramorphix', 'pg:Pyramorphix', '', { anchor: 'start' }),
     ],
   }));
 

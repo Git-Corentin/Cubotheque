@@ -61,7 +61,9 @@ export function configurePlayer(player, b, { controls = true } = {}) {
   const desc = b.puzzle?.startsWith('pg:') ? pgDesc(b.puzzle.slice(3)) : b.puzzle === 'custom' ? b.pg : null;
   if (desc) { player.removeAttribute('puzzle'); player.setAttribute('experimental-puzzle-description', desc); }
   else { player.removeAttribute('experimental-puzzle-description'); player.setAttribute('puzzle', b.puzzle || '3x3x3'); }
-  player.setAttribute('visualization', b.viz || '3D');
+  // certains puzzles n'ont pas de rendu 3D dans cubing.js
+  const only2D = ['redi_cube', 'melindas2x2x2x2', 'tri_quad'].includes(b.puzzle);
+  player.setAttribute('visualization', only2D && (b.viz || '3D') === '3D' ? '2D' : b.viz || '3D');
   player.setAttribute('background', 'none');
   player.setAttribute('hint-facelets', 'none');
   player.setAttribute('control-panel', controls ? 'bottom-row' : 'none');
