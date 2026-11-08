@@ -318,6 +318,20 @@ body.solving .top, body.solving .head, body.solving .scramble, body.solving .sid
 .mosaic-controls { display: grid; gap: 14px; }
 .mosaic-out { background: var(--core); border-radius: 18px; padding: 14px; display: grid; place-items: center; min-height: 420px; position: relative; }
 .mosaic-out canvas { max-width: 100%; height: auto; image-rendering: pixelated; border-radius: 6px; cursor: crosshair; }
+.mz-stage { position: relative; display: block; max-width: 100%; line-height: 0; touch-action: none; }
+.mz-stage canvas { display: block; width: 100%; }
+.mz-stage .mz-orig { position: absolute; inset: 0; height: 100%; image-rendering: auto; opacity: 0; pointer-events: none; transition: opacity .18s; }
+.mz-stage[data-view="orig"] .mz-orig, .mz-stage[data-view="split"] .mz-orig { opacity: 1; }
+.mz-stage[data-view="split"] { cursor: ew-resize; }
+.mz-split { position: absolute; top: -6px; bottom: -6px; width: 3px; margin-left: -1.5px; background: #fff; box-shadow: 0 0 0 1px #000; pointer-events: none; }
+.mz-split::after { content: '⟷'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; color: #000; border: 1px solid #000; border-radius: 99px; padding: 6px 7px; font-size: 14px; line-height: 1; }
+.mosaic-out.busy .mz-stage { opacity: .55; transition: opacity .2s; }
+.mz-auto { margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--core); }
+.mz-lbl { display: flex; justify-content: space-between; }
+.mz-lbl output { font-variant-numeric: tabular-nums; opacity: .7; }
+.mz-fine summary { cursor: pointer; font-weight: 650; }
+.mz-bg button { width: 30px; height: 30px; border-radius: 8px; background: var(--c); border: 0; box-shadow: inset 0 0 0 1px rgb(0 0 0 / .25); cursor: pointer; }
+.mz-bg button[aria-pressed="true"] { box-shadow: inset 0 0 0 1px rgb(0 0 0 / .25), 0 0 0 3px var(--paper), 0 0 0 5px var(--ink); }
 .palette-pick { display: flex; gap: 6px; flex-wrap: wrap; }
 .palette-pick label { width: 34px; height: 34px; border-radius: 8px; background: var(--c); display: grid; place-items: center; cursor: pointer; box-shadow: inset 0 0 0 1px rgb(0 0 0 / .2); }
 .palette-pick input { appearance: none; width: 14px; height: 14px; border-radius: 4px; background: rgb(255 255 255 / .2); border: 2px solid rgb(0 0 0 / .45); margin: 0; }
@@ -552,3 +566,4 @@ body.solving .top, body.solving .head, body.solving .scramble, body.solving .sid
 :root[data-theme="noir"][data-tilebg="uni"] .detail .stage { background: radial-gradient(circle at 50% 42%, #3a3a3a 0%, #262626 60%, #1a1a1a 100%); }
 :root:not([data-tilebg="teinte"]) .ledger tr:hover td { background: var(--core); }
 :root:not([data-tilebg="teinte"]) .wk-preview.on-tone { background: var(--tile-bg); }
+.cat-hint { font-weight: 400; font-size: .82rem; line-height: 1.35; }

@@ -6,12 +6,13 @@ import { openCutout } from '../cutout.js';
 export function guessCategory(name) {
   const s = name.toLowerCase();
   if (/minx|dodeca/.test(s)) return 'dodeca';
-  if (/mirror|axis|ghost|fisher|windmill|mastermorphix|fenzy|mixup|void|pillow|barrel|penrose/.test(s)) return 'shape';
+  if (/mirror|axis|ghost|fisher|windmill|morphix|fenzy|void|pillow|barrel|penrose|pandora|wheel|super ?cube|sudoku/.test(s)) return 'shape';
   if (/pyramin|tetra|jing/.test(s)) return 'tetra';
   if (/fto|octa|diamond|gem/.test(s)) return 'octa';
   if (/skewb|dino|rex|redi|ivy|xyz/.test(s)) return 'corner';
   if (/helicopter|copter|curvy/.test(s)) return 'edge';
-  if (/square[- ]?1|sq[- ]?1|bandag|shift|morph|floppy/.test(s)) return 'shift';
+  if (/floppy|domino|tower/.test(s)) return 'cuboid';
+  if (/square[- ]?1|sq[- ]?1|bandag|shift|mixup|bermuda|siamese|fuse/.test(s)) return 'shift';
   const m = s.match(/(\d+)\s*x\s*(\d+)(?:\s*x\s*(\d+))?/);
   if (m) { const d = [m[1], m[2], m[3] || m[2]]; return new Set(d).size === 1 ? 'nxn' : 'cuboid'; }
   if (/clock|gear|sphere|ball|maze/.test(s)) return 'other';

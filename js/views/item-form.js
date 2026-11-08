@@ -41,7 +41,7 @@ export function render(main, params) {
         h('label', { class: 'lbl' }, 'Marque', input('brand', { list: 'dl-brands' })),
         h('label', { class: 'lbl' }, 'Modèle ou version', input('model', { placeholder: 'ex. 12 M Pro, WR M V9' }))),
       h('div', { class: 'grid2' },
-        h('label', { class: 'lbl' }, 'Catégorie', select('category', CATEGORIES.map((c) => [c.id, c.label]))),
+        (() => { const s = select('category', CATEGORIES.map((c) => [c.id, c.label])); const hint = h('span', { class: 'hint cat-hint' }); const upd = () => (hint.textContent = CATEGORIES.find((c) => c.id === s.value)?.hint || ''); s.addEventListener('change', upd); upd(); return h('label', { class: 'lbl' }, 'Catégorie', s, hint); })(),
         h('label', { class: 'lbl' }, 'Format', input('size', { placeholder: '3x3x3, 2x2x4, 5 couches…' }))),
       h('div', { class: 'grid2' },
         h('label', { class: 'lbl' }, 'Finition', select('finish', [['', 'Non précisée'], ['stickerless', 'Sans autocollants'], ['stickers', 'Autocollants'], ['tiles', 'Tuiles'], ['custom', 'Personnalisée']])),

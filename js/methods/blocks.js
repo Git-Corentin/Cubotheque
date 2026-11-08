@@ -36,6 +36,7 @@ export function cubeState(b) {
   return st;
 }
 function cubeOpts(b) {
+  if (b.style === 'image') { try { return { marks: C.pictureMarks(cubeSize(b), C.trackedCase(cubeSize(b), b.alg, b.setup)) }; } catch { return {}; } }
   if (b.style !== 'mirror') return {};
   try { return { relief: C.mirrorRelief(cubeSize(b), C.trackedCase(cubeSize(b), b.alg, b.setup)) }; } catch { return {}; }
 }
@@ -82,7 +83,7 @@ function cubeEd(b, save, ctx) {
   const sizeBox = h('div', { class: 'lbl' }, h('span', {}, 'Taille'));
   const syncShape = () => { sizeBox.replaceChildren(h('span', {}, b.shape === 'cuboid' ? 'Largeur x hauteur x profondeur' : 'Taille'), b.shape === 'cuboid' ? dimsRow : nSel); };
   syncShape();
-  const styleSel = h('select', { class: 'field', onchange: () => { b.style = styleSel.value; save(); redraw(); } }, h('option', { value: 'couleurs' }, 'Couleurs'), h('option', { value: 'mirror' }, 'Relief Mirror (formes)'));
+  const styleSel = h('select', { class: 'field', onchange: () => { b.style = styleSel.value; save(); redraw(); } }, h('option', { value: 'couleurs' }, 'Couleurs'), h('option', { value: 'mirror' }, 'Relief Mirror (formes)'), h('option', { value: 'image' }, 'Cube à image (orientation)'));
   styleSel.value = b.style || 'couleurs';
   const maskSel = h('select', { class: 'field', onchange: () => { b.mask = maskSel.value; save(); redraw(); } }, MASKS.map(([v, l]) => h('option', { value: v }, l)));
   maskSel.value = b.mask;

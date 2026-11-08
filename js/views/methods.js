@@ -17,8 +17,9 @@ export async function render(main, params) {
   }
   const sheet = getSheet(params.id);
   if (!sheet) return notFound(main);
-  if (params.mode === 'pdf' || !state.canEdit) return doc(main, sheet);
-  return editorView(main, sheet);
+  // aperçu par défaut ; l'édition a sa propre adresse (…/edition)
+  if (params.mode === 'edition' && state.canEdit) return editorView(main, sheet);
+  return doc(main, sheet);
 }
 const notFound = (main) => main.append(h('div', { class: 'empty' }, h('h2', {}, 'Fiche introuvable.'), h('a', { class: 'btn', href: '#/methodes' }, 'Toutes les méthodes')));
 
@@ -59,7 +60,7 @@ function list(main) {
 function chooser(main, itemId) {
   if (!state.canEdit) { location.hash = '#/methodes'; return; }
   const it = itemId ? getItem(itemId) : null;
-  const make = async (s) => { await saveSheet(s); location.replace('#/methodes/' + s.id); };
+  const make = async (s) => { await saveSheet(s); location.replace(`#/methodes/${s.id}/edition`); };
   const base = () => ({ id: uid(), title: it?.name || 'Nouvelle méthode', itemId: itemId || '', puzzle: it?.name || '', intro: '', scheme: 'jaune', blocks: [], created: Date.now() });
   const opt = (title, desc, fn) => h('button', { class: 'sheet-card', style: { border: 0, textAlign: 'left', cursor: 'pointer', gridTemplateColumns: '1fr' }, onclick: fn }, h('div', {}, h('b', {}, title), h('span', {}, desc)));
   main.append(h('header', { class: 'head' }, h('h1', {}, 'Nouvelle fiche'), h('p', { class: 'lead' }, it ? `Pour « ${it.name} ». Partir de quoi ?` : 'Partir de quoi ?')),
@@ -116,7 +117,7 @@ function editorView(main, sheet) {
   const add = (type) => { sheet.blocks.push(newBlock(type)); save(); paint(); blocksEl.lastElementChild?.scrollIntoView({ behavior: 'smooth', block: 'center' }); };
   main.append(
     h('div', { class: 'sheet-head' }, title,
-      h('div', { class: 'row' }, status, h('a', { class: 'btn accent', href: `#/methodes/${sheet.id}/pdf` }, 'Aperçu et PDF'),
+      h('div', { class: 'row' }, status, h('a', { class: 'btn accent', href: `#/methodes/${sheet.id}` }, 'Terminer et voir l\'aperçu'),
         h('button', { class: 'btn danger', onclick: async () => { if (await confirmBox('Supprimer cette fiche et tous ses blocs ?', { ok: 'Supprimer', danger: true })) { gone = true; await deleteSheet(sheet.id); location.hash = '#/methodes'; } } }, 'Supprimer'))),
     h('div', { class: 'panel', style: { display: 'grid', gap: '12px', marginBottom: '8px' } },
       h('div', { class: 'grid3' }, h('label', { class: 'lbl' }, 'Puzzle', puzzleIn), h('label', { class: 'lbl' }, 'Objet de la collection', itemSel), h('label', { class: 'lbl' }, 'Couleurs des diagrammes', schemeSel)),
@@ -136,12 +137,13 @@ async function doc(main, sheet) {
   if (it?.imageId) { const u = await imageURL(it.imageId); if (u) img.src = u; }
   const scheme = sheet.scheme || 'jaune';
   const flow = h('div', { class: 'doc-flow' }, sheet.blocks.map((b) => docBlock(b, scheme)));
-  const back = sheet.lib ? h('a', { class: 'btn ghost', href: '#/methodes' }, 'Toutes les méthodes')
-    : state.canEdit ? h('a', { class: 'btn ghost', href: '#/methodes/' + sheet.id }, 'Revenir à l\'édition') : h('a', { class: 'btn ghost', href: '#/methodes' }, 'Toutes les méthodes');
+  const back = h('a', { class: 'btn ghost', href: '#/methodes' }, 'Toutes les méthodes');
+  const canEditThis = !sheet.lib && state.canEdit;
   main.append(
     h('div', { class: 'row no-print', style: { margin: '14px 0 18px', justifyContent: 'space-between' } }, back,
       h('div', { class: 'row' },
-        sheet.lib && state.canEdit ? h('button', { class: 'btn', onclick: async () => { const s = copyOf(sheet); await saveSheet(s); toast('Copiée dans vos fiches.'); location.hash = '#/methodes/' + s.id; } }, 'Copier dans mes fiches') : null,
+        sheet.lib && state.canEdit ? h('button', { class: 'btn', onclick: async () => { const s = copyOf(sheet); await saveSheet(s); toast('Copiée dans vos fiches : vous pouvez l\'adapter.'); location.hash = `#/methodes/${s.id}/edition`; } }, 'Copier dans mes fiches') : null,
+        canEditThis ? h('a', { class: 'btn solid', href: `#/methodes/${sheet.id}/edition` }, 'Éditer') : null,
         h('button', { class: 'btn accent', onclick: () => window.print() }, 'Imprimer ou enregistrer en PDF'))),
     h('article', { class: 'doc' },
       h('header', { class: 'doc-head' },

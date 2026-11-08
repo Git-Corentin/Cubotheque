@@ -232,11 +232,25 @@ export function buildLibrary() {
       cube('Sune sur un Mirror', "R U R' U R U2 R'", { style: 'mirror', views: ['top', 'iso'] }),
       text('Axis, Fisher, Windmill, Wheel', 'Les centres ont une orientation visible. Repérez quelle pièce est un centre (elle ne bouge que sur elle-même). Si à la fin un centre est tourné de 180°, faites l\'algorithme ci-dessous, qui ne bouge que le centre du dessus.'),
       cube('Centre du dessus tourné d\'un demi-tour', "R U R' U R U R' U R U R' U R U R' U R U R' U", { views: ['iso'], note: 'Soit (R U R\' U) répété 5 fois. Aucune autre pièce ne change.' }),
-      text('Sudokube et cubes à images', 'Les centres portent un chiffre ou un dessin : leur orientation compte. Même remède que ci-dessus pour un centre retourné d\'un demi-tour ; pour un quart de tour, résolvez le cube en gardant ce centre de travers, puis corrigez deux centres à la fois avec la même idée.'),
+      text('Sudokube et cubes à images', 'Les centres portent un chiffre ou un dessin : leur orientation compte. Voir la fiche « Cube à image » : une formule pour un centre à l\'envers, une pour deux centres tournés d\'un quart de tour.'),
       text('Barrel, Pandora, Penrose, Pillow, Earth Pillow, Apple et Lemon Cube', 'Mécanisme de 3x3 sous une autre forme : ce sont les couleurs (ou les motifs) qui guident, pas les arêtes. Sur les formes rondes (Barrel, Apple, Lemon), repérez d\'abord les centres : ce sont les seules pièces qui ne quittent jamais leur face. Le Penrose et le Pandora cachent des pièces qui ont l\'air coupées : résolvez d\'abord les coins, puis comme un 3x3.'),
       text('Ghost Cube, Mastermorphix, Pyramorphix', 'Mêmes principes que l\'Axis, avec des centres orientés. Le Pyramorphix et le Mastermorphix ont des centres que l\'on voit peu : résolvez d\'abord les coins (les grandes pointes).'),
       text('Void Cube', 'Sans centres, il peut finir avec deux arêtes échangées (parité). Remède : un quart de tour d\'une tranche du milieu (M, E ou S), puis on reprend la résolution normalement.'),
       cube('Void Cube', '', { mask: 'void', views: ['iso', 'top'] }),
+    ],
+  }));
+
+  L.push(sheet({
+    id: 'lib-supercube', icon: 'supercube', title: 'Cube à image (supercube) : orienter les centres', puzzle: '3x3x3 à image, Sudokube', events: [], cats: [], keywords: /super ?cube|sudoku|picture|image|photo|calendrier|calendar|chiffres|lettres|emoji|logo/i,
+    intro: 'Sur un cube à image (photo, Sudokube, chiffres, calendrier…), les centres ne sont plus de simples couleurs : leur orientation se voit. On résout comme un 3x3 classique, puis il reste parfois un ou deux centres de travers. Deux formules suffisent. Les flèches des schémas montrent le « haut » de l\'image sur chaque pièce.',
+    blocks: [
+      text('Pendant la résolution', 'Les arêtes et les coins n\'ont qu\'une seule bonne orientation, comme d\'habitude : seules les images des centres demandent de l\'attention. Un centre ne tourne que lorsque sa propre face tourne. Astuce : avant la dernière couche, regardez déjà le centre du dessus ; un U de plus ou de moins pendant l\'OLL ou la PLL ne change pas le résultat final, mais vous évitez de devoir corriger après.'),
+      text('Règle de parité', 'Quand toutes les pièces sont à leur place, le total des quarts de tour de travers est toujours pair. Il y a donc trois situations possibles : un centre à l\'envers (demi-tour), deux centres tournés d\'un quart de tour, ou une combinaison des deux. Un centre seul tourné d\'un quart de tour est impossible : cherchez le deuxième.'),
+      cube('Formule 1 : centre du dessus tourné d\'un demi-tour', "R U R' U R U R' U R U R' U R U R' U R U R' U", { style: 'image', views: ['iso', 'top'], note: 'Soit (R U R\' U) répétée 5 fois : 20 mouvements, facile à retenir. Seul le centre du dessus tourne, de 180°. Pour un autre centre, tournez le cube entier (x, y, z) pour l\'amener en haut.' }),
+      cube('Formule 2 : deux centres tournés d\'un quart de tour', "E R' E' M E R E' M'", { style: 'image', views: ['iso', 'net'], note: 'Commutateur de tranches : le centre du dessus tourne d\'un quart dans le sens horaire et celui de face d\'un quart dans le sens inverse. Sens opposés ? Jouez l\'inverse : M E R\' E\' M\' E R E\'.' }),
+      text('Les autres cas', 'Deux centres voisins : tournez le cube pour les amener en haut et devant, puis formule 2 (ou son inverse). Deux centres opposés (haut et bas) : formule 2 une fois pour le haut et la face avant, puis tournez le cube (x) et refaites-la pour la face avant et le bas, ce qui remet la face avant d\'aplomb. Deux centres à l\'envers : formule 1 pour chacun. Rappel de notation : M suit le sens de L, E celui de D, S celui de F.'),
+      cube('Variante : deux centres à 180° en une fois', "U2 F2 D2 M' D2 F2 U2 M", { style: 'image', views: ['iso', 'net'], note: 'Tourne de 180° le centre du dessus et celui de derrière, sans rien toucher d\'autre : pratique quand les deux sont à l\'envers.' }),
+      text('Sur d\'autres tailles', 'Même principe sur un 2x2 à image (aucun centre : rien à faire) et sur les grands cubes, où chaque centre est un bloc : sur un 4x4 ou un 5x5 à image, résolvez les centres en respectant le dessin dès la réduction. Les Axis, Fisher et Ghost ont aussi des centres orientés : la formule 1 y fonctionne telle quelle.'),
     ],
   }));
 
@@ -300,6 +314,6 @@ export const libSheet = (id) => library().find((s) => s.id === id);
 
 /** Fiches de la bibliothèque qui concernent un objet de la collection. */
 export function libraryFor(item, event) {
-  const hay = `${item.name} ${item.size} ${item.model}`;
+  const hay = `${item.name} ${item.size} ${item.model} ${(item.tags || []).join(' ')}`;
   return library().filter((s) => (event && s.events.includes(event)) || s.cats?.includes(item.category) || s.keywords?.test(hay));
 }

@@ -197,13 +197,29 @@ export function mirrorRelief(size, tracked) {
     return { w: parallel ? T[ra] : T[da], h: parallel ? T[da] : T[ra], p: T[axisOf(N)] };
   });
 }
+/** Cube à image (supercube) : direction « haut » de chaque autocollant, en 3D. */
+export function pictureMarks(size, tracked) {
+  const g = geometry(size);
+  return tracked.map((v, i) => cross(g.nor[i], v.r));
+}
+const isCenterIdx = (g, i) => { const { w, h } = g.faceInfo[g.face[i]]; return g.row[i] > 0 && g.row[i] < h - 1 && g.col[i] > 0 && g.col[i] < w - 1; };
+/** Repère dessiné sur un autocollant : une aiguille vers le « haut » de l'image (plus marquée au centre). */
+function markPath(cx, cy, ux, uy, s, strong) {
+  const L = s * (strong ? 0.36 : 0.3), t = s * (strong ? 0.13 : 0.09);
+  const tx = cx + ux * L, ty = cy + uy * L, px = -uy, py = ux;
+  const bx = cx + ux * (L - t * 1.6), by = cy + uy * (L - t * 1.6);
+  const sw = strong ? s * 0.09 : s * 0.06;
+  return `<g opacity="${strong ? 0.85 : 0.5}"><line x1="${f3(cx - ux * L * 0.55)}" y1="${f3(cy - uy * L * 0.55)}" x2="${f3(bx)}" y2="${f3(by)}" stroke="#111" stroke-width="${f3(sw)}" stroke-linecap="round"/>`
+    + `<polygon points="${f3(tx)},${f3(ty)} ${f3(bx + px * t)},${f3(by + py * t)} ${f3(bx - px * t)},${f3(by - py * t)}" fill="#111"/></g>`;
+}
+const screenUp = (m, f) => { const { r: R, d: D } = FD[f]; return [dot(m, R), dot(m, D)]; };
 const gold = (p) => `hsl(44 62% ${Math.round(Math.max(28, Math.min(78, 34 + (p - 0.55) * 45)))}%)`;
 
 /* ---------- rendus SVG ---------- */
 const svgOpen = (vb, extra = '') => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" ${extra}>`;
 const f3 = (v) => Math.round(v * 1000) / 1000;
 
-export function renderNet(st, size, scheme = 'jaune', { interactive = false, relief = null } = {}) {
+export function renderNet(st, size, scheme = 'jaune', { interactive = false, relief = null, marks = null } = {}) {
   const g = geometry(size);
   const [X, Y, Z] = g.dims;
   const s = 12, gap = 4;
@@ -222,13 +238,14 @@ export function renderNet(st, size, scheme = 'jaune', { interactive = false, rel
         const rf = relief[i]; const rw = Math.min(1.5, rf.w) * (s - 1.4), rh = Math.min(1.5, rf.h) * (s - 1.4);
         out += `<rect ${da} x="${f3(fx + c * s + s / 2 - rw / 2)}" y="${f3(fy + r * s + s / 2 - rh / 2)}" width="${f3(rw)}" height="${f3(rh)}" rx="1.4" fill="${st[i] === 'x' ? colorOf('x') : gold(rf.p)}" stroke="#000" stroke-width=".5"/>`;
       } else out += `<rect ${da} x="${fx + c * s + 0.7}" y="${fy + r * s + 0.7}" width="${s - 1.4}" height="${s - 1.4}" rx="1.6" fill="${colorOf(st[i], scheme)}"/>`;
+      if (marks && st[i] !== 'x' && st[i] !== 'o') { const [ux, uy] = screenUp(marks[i], f); out += markPath(fx + c * s + s / 2, fy + r * s + s / 2, ux, uy, s, isCenterIdx(g, i)); }
     }
     if (interactive) out += `<text x="${fx + (w * s) / 2}" y="${fy + h * s + 4.4}" font-size="3.6" text-anchor="middle" fill="currentColor" opacity=".6">${f}</text>`;
   });
   return out + '</svg>';
 }
 
-export function renderIso(st, size, scheme = 'jaune', { relief = null } = {}) {
+export function renderIso(st, size, scheme = 'jaune', { relief = null, marks = null } = {}) {
   const g = geometry(size);
   const P = ([x, y, z]) => [(x - z) * 0.866, (x + z) * 0.5 - y];
   const gp = 0.86;
@@ -248,6 +265,13 @@ export function renderIso(st, size, scheme = 'jaune', { relief = null } = {}) {
       if (relief) { sw2 = gp * Math.min(1.45, relief[i].w); sh2 = gp * Math.min(1.45, relief[i].h); fill = st[i] === 'x' ? colorOf('x') : gold(relief[i].p); }
       const pts = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([a, b]) => P([0, 1, 2].map((m) => c[m] + R[m] * a * sw2 + D[m] * b * sh2)));
       polys += `<polygon points="${pts.map((p) => p.map(f3).join(',')).join(' ')}" fill="${fill}" ${relief ? 'stroke="#000" stroke-width=".12"' : ''} stroke-linejoin="round"/>`;
+      if (marks && st[i] !== 'x' && st[i] !== 'o') {
+        const m = marks[i], strong = isCenterIdx(g, i), L = strong ? 0.62 : 0.5, t = strong ? 0.2 : 0.14;
+        const side = cross(g.nor[i], m);
+        const at = (a, b) => P([0, 1, 2].map((k) => c[k] + m[k] * a + side[k] * b));
+        const [x0, y0] = at(-L * 0.55, 0), [x1, y1] = at(L - t * 1.6, 0), tip = at(L, 0), l = at(L - t * 1.6, t), r2 = at(L - t * 1.6, -t);
+        polys += `<g opacity="${strong ? 0.85 : 0.5}"><line x1="${f3(x0)}" y1="${f3(y0)}" x2="${f3(x1)}" y2="${f3(y1)}" stroke="#111" stroke-width="${strong ? 0.17 : 0.11}" stroke-linecap="round"/><polygon points="${[tip, l, r2].map((p) => p.map(f3).join(',')).join(' ')}" fill="#111"/></g>`;
+      }
     }
   }
   const corners = [];
@@ -258,7 +282,7 @@ export function renderIso(st, size, scheme = 'jaune', { relief = null } = {}) {
 }
 
 /** Vue de dessus façon fiche OLL/PLL : face U + bandeaux latéraux + flèches. */
-export function renderTop(st, size, scheme = 'jaune', arrows = [], { interactive = false, relief = null } = {}) {
+export function renderTop(st, size, scheme = 'jaune', arrows = [], { interactive = false, relief = null, marks = null } = {}) {
   const g = geometry(size);
   const [X, , Z] = g.dims;
   const s = 10, side = 3.2, m = 1.2, off = side + m;
@@ -274,6 +298,7 @@ export function renderTop(st, size, scheme = 'jaune', arrows = [], { interactive
       const rf = relief[i]; const rw = Math.min(1.5, rf.w) * (s - 1.2), rh = Math.min(1.5, rf.h) * (s - 1.2);
       out += `<rect ${da} x="${f3(off + c * s + s / 2 - rw / 2)}" y="${f3(off + r * s + s / 2 - rh / 2)}" width="${f3(rw)}" height="${f3(rh)}" rx="1.2" fill="${gold(rf.p)}" stroke="#000" stroke-width=".5"/>`;
     } else out += `<rect ${da} x="${off + c * s + 0.6}" y="${off + r * s + 0.6}" width="${s - 1.2}" height="${s - 1.2}" rx="1.3" fill="${colorOf(st[i], scheme)}"/>`;
+    if (marks && st[i] !== 'x') { const [ux, uy] = screenUp(marks[i], 'U'); out += markPath(off + c * s + s / 2, off + r * s + s / 2, ux, uy, s, isCenterIdx(g, i)); }
   }
   const strip = (x, y, w, h, i) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="0.8" fill="${relief ? gold(relief[i].p) : colorOf(st[i], scheme)}" stroke="#000" stroke-width="0.5"/>`;
   for (let c = 0; c < X; c++) {

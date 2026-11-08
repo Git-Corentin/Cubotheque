@@ -153,6 +153,7 @@ const ICONS = {
   mirror: () => { const r = C.mirrorRelief(3, C.trackedCase(3, "R U R' U R U2 R'")); return C.renderIso(C.solved(3), 3, 'jaune', { relief: r }); },
   cuboid: () => C.renderIso(C.applyAlg(C.solved([3, 2, 3]), [3, 2, 3], "U R2 U'"), [3, 2, 3], 'jaune'),
   void: () => C.renderIso(C.applyMask(C.solved(3), 3, 'void'), 3, 'jaune'),
+  supercube: () => { const t = C.trackedCase(3, "E R' E' M E R E' M'"); return C.renderIso(t.map((v) => C.geometry(3).face[v.id]), 3, 'jaune', { marks: C.pictureMarks(3, t) }); },
 };
 
 /** Illustration d'un puzzle. kind : 'nxn:3', 'pyraminx', 'skewb', 'megaminx', 'sq1', 'clock', 'mirror', 'cuboid', 'void'. */

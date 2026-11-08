@@ -3,13 +3,13 @@ import { localBackend, supaBackend, supaConfig } from './backend.js';
 export const CATEGORIES = [
   { id: 'nxn', label: 'Cubes NxN', hint: '2x2 à 21x21, la famille du Rubik\'s Cube' },
   { id: 'cuboid', label: 'Cuboïdes', hint: '2x2x3, 3x3x2 Domino, 3x3x5…' },
-  { id: 'shape', label: 'Modifs de forme', hint: 'Mirror, Axis, Ghost, Fisher, Windmill, Void…' },
+  { id: 'shape', label: 'Shape mods', hint: 'Un mécanisme connu (souvent 3x3) taillé dans une autre forme : Mirror, Axis, Ghost, Fisher, Windmill, Void, Pyramorphix…' },
   { id: 'corner', label: 'Rotation par les coins', hint: 'Skewb, Dino, Rex, Redi Cube, Ivy…' },
   { id: 'edge', label: 'Rotation par les arêtes', hint: 'Helicopter, Curvy Copter…' },
   { id: 'tetra', label: 'Tétraèdres', hint: 'Pyraminx, Master Pyraminx, Jing\'s…' },
   { id: 'octa', label: 'Octaèdres', hint: 'FTO, Skewb Diamond, Gems…' },
   { id: 'dodeca', label: 'Dodécaèdres', hint: 'Megaminx, Kilominx, Gigaminx…' },
-  { id: 'shift', label: 'Changeurs de forme', hint: 'Square-1, Bandaged, Mastermorphix…' },
+  { id: 'shift', label: 'Square-1 et bandés', hint: 'Coupes non cubiques ou pièces soudées : certains mouvements se bloquent et la forme change en tournant. Square-1, Mixup, Bandaged, Bermuda…' },
   { id: 'other', label: 'Curiosités', hint: 'Clock, Gear, sphères, puzzles 2D…' },
 ];
 export const catLabel = (id) => CATEGORIES.find((c) => c.id === id)?.label || 'Sans catégorie';

@@ -59,8 +59,8 @@ Une fois connecté, Réglages → *Base en ligne* propose **« Les envoyer dans 
 | **Ajout** | Formulaire, **photo prise au téléphone**, *studio photo* avec cadre de visée, recherche d'images libres (Wikimedia Commons + Openverse), import, glisser-déposer, **coller une image copiée (Ctrl+V)**. Détourage automatique, recadrage, teinte calculée. |
 | **Ajout en série** | Un nom par ligne, puis l'atelier photo fait défiler les objets sans image. |
 | **Chrono** | Mélanges officiels (cubing.js), inspection WCA, une série par objet, moyennes, courbe. Les temps des visiteurs restent sur leur appareil. |
-| **Méthodes** | Bibliothèque intégrée + vos fiches. Export PDF. |
-| **Mosaïque** | Image → fresque de cubes, plan de montage imprimable. |
+| **Méthodes** | Bibliothèque intégrée + vos fiches. Une fiche s'ouvre en aperçu ; le bouton *Éditer* passe en édition. Export PDF. |
+| **Mosaïque** | Image → fresque de cubes. Réglage automatique (le meilleur rendu est cherché en comparant la mosaïque à l'image), bascule Mosaïque / Original / Comparer (ou touche Espace maintenue), plan de montage imprimable. |
 | **Chiffres** | Statistiques, mur de couleurs, records. |
 | **Réglages** | Visibles seulement une fois connecté. Apparence, base en ligne, sauvegarde `.zip`, export CSV. |
 
@@ -70,8 +70,8 @@ L'accès propriétaire se trouve en bas de page : **Espace propriétaire**.
 
 ## Méthodes
 
-### Bibliothèque intégrée (14 fiches)
-3x3 débutant, CFOP 2 temps, **les 57 OLL**, **les 21 PLL**, 2x2 Ortega, 4x4 (réduction et parités), 5x5 et plus, Pyraminx, Skewb, Megaminx, Square-1, Clock, shape mods du 3x3 (Mirror, Axis, Fisher, Windmill, Ghost, Void…), cuboïdes.
+### Bibliothèque intégrée (18 fiches)
+3x3 débutant, CFOP 2 temps, **les 57 OLL**, **les 21 PLL**, 2x2 Ortega, 4x4 (réduction et parités), 5x5 et plus, Pyraminx, Skewb, Megaminx, Square-1, Clock, shape mods du 3x3 (Mirror, Axis, Fisher, Windmill, Ghost, Void…), **cube à image (orientation des centres)**, cuboïdes, Dino/Redi, famille Megaminx, Morphix.
 
 **Chaque algorithme a été vérifié par calcul**, pas recopié de mémoire :
 - cubes et cuboïdes : moteur du site (les 57 OLL donnent 57 cas distincts qui préservent les deux premières couches, les 21 PLL 21 cas distincts) ;
@@ -135,3 +135,8 @@ supabase/schema.sql     tables, stockage et règles d'accès
 .github/workflows/      maintien en éveil de la base
 worker/cors-proxy.js    relais d'images facultatif
 ```
+
+## Catégories
+
+- **Shape mods** : un mécanisme connu (presque toujours un 3x3, parfois un 2x2) taillé dans une autre forme. Les mouvements sont ceux du cube d'origine ; seule la lecture change (Mirror, Axis, Ghost, Fisher, Windmill, Void, Pyramorphix, Mastermorphix…).
+- **Square-1 et bandés** : coupes non cubiques ou pièces soudées. La forme des couches change en tournant et certains mouvements deviennent impossibles (Square-1, Mixup, Bandaged, Bermuda…).
