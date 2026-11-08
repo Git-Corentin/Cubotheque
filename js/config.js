@@ -3,6 +3,6 @@
 // Ces deux valeurs sont publiques par conception : la sécurité repose sur les règles
 // d'accès de la base (voir supabase/schema.sql). Ne mettez JAMAIS ici la clé « secret » / « service_role ».
 export const SUPABASE = {
-  url: '',  // ex. 'https://abcdefghijkl.supabase.co'
-  key: '',  // clé « publishable » (sb_publishable_…) ou ancienne clé « anon »
+  url: 'https://shjafkvlhhtcgjexojbq.supabase.co',  // ex. 'https://abcdefghijkl.supabase.co'
+  key: 'sb_publishable_gDjkpWGNGu6xzyqe8whVrw_0d9gEOQd',  // clé « publishable » (sb_publishable_…) ou ancienne clé « anon »
 };

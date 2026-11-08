@@ -96,18 +96,8 @@ La page Méthodes contient le tableau **« Quel outil pour quel puzzle ? »**, f
 
 ---
 
-## Importer l'ancien inventaire Excel (une seule fois)
-Le fichier `cubotheque-import-inventaire.zip` (fourni à part) contient les 135 objets de l'inventaire avec leurs photos déjà détourées. Réglages → Sauvegarde → choisir le fichier → **Remplacer tout** (ou « Ajouter à l'existant »). En mode en ligne, connectez-vous d'abord : les images partent dans la base pendant l'import. Rien n'est ajouté au site : c'est une restauration de sauvegarde ordinaire.
-
-Le script qui a produit ce fichier (`outils/import_inventaire.py`, fourni à part, hors du site) peut être relancé sur une nouvelle version du tableur.
-
 ## Images et détourage
-- **Atelier de détourage** : s'ouvre à chaque nouvelle image. Trois méthodes :
-  - **IA précise** : modèle RMBG-1.4 exécuté dans le navigateur (transformers.js ; téléchargé une fois depuis huggingface.co, puis gardé en cache), avec IMG.LY en secours. Qualité Rapide / Équilibrée / Maximale.
-  - **Couleur du fond** : calibrable. La pipette ajoute des couleurs de fond en cliquant dessus, la tolérance règle la sévérité, et l'option « relié aux bords » protège les pièces de la même couleur que le fond.
-  - **Garder le fond**.
-- Retouches : gomme de zone (un clic efface une plage de fond oubliée), pinceaux Effacer / Restaurer, dureté et lissage du contour, suppression des reflets colorés du fond, suppression des îlots détachés. Aperçu sur damier, blanc, noir ou couleur.
-- Si l'IA ne se charge pas, l'atelier affiche la raison exacte et bascule sur « Couleur du fond ». Causes habituelles : bloqueur de publicité ou réseau filtrant huggingface.co, ou navigateur trop ancien.
+- **Détourage précis** : réseau de neurones exécuté dans le navigateur (`@imgly/background-removal`, modèle d'environ 40 Mo téléchargé une fois). Aucune image n'est envoyée à un serveur. Sur téléphone, préférez **Fond uni** (instantané).
 - En mode en ligne, chaque image est envoyée en deux tailles (900 px et miniature 380 px) pour économiser la bande passante (5 Go/mois sur l'offre gratuite).
 - Pour des photos homogènes : fond uni clair, lumière diffuse, vue de trois quarts, même cadrage. Le *studio photo* affiche un cadre de visée.
 - Relais d'images facultatif : `worker/cors-proxy.js` (Cloudflare Workers, gratuit).
